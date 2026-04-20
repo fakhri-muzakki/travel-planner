@@ -15,6 +15,7 @@ const GoogleButton = () => {
     <button
       className="w-full rounded-2xl border border-white/10 bg-white/5 py-3 hover:bg-white/10 transition"
       onClick={login}
+      type="button"
     >
       Continue with Google
     </button>

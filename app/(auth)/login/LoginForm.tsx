@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { createClient } from "@/lib/supabase/client";
 import { redirect } from "next/navigation";
 import toast from "react-hot-toast";
+import Link from "next/link";
 
 const LoginSchema = v.object({
   email: v.pipe(v.string(), v.email()),
@@ -99,7 +100,15 @@ const LoginForm = () => {
         <GoogleButton />
 
         <p className="mt-6 text-center text-sm text-white/50">
-          New here? <button className="text-cyan-400">Create account</button>
+          New here?{" "}
+          <Link
+            href="/register"
+            prefetch={false}
+            scroll={true}
+            className="text-cyan-400"
+          >
+            Create account
+          </Link>
         </p>
       </form>
     </section>
