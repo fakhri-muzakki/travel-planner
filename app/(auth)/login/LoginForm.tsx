@@ -41,7 +41,7 @@ const LoginForm = () => {
     console.log("Login success:", data);
     toast.success("Login successfully");
 
-    redirect("/");
+    redirect("/trips");
   };
   return (
     <section className="flex items-center justify-center p-6 sm:p-10">
