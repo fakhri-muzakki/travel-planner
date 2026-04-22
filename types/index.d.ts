@@ -25,6 +25,7 @@ export interface TripDay {
   id: string;
   day_number: number;
   day_theme: string;
+  date: string;
   accommodation: TripAccommodation;
   itinerary_activities: TripActivity[];
 }
@@ -33,12 +34,14 @@ export interface TripBudgetSummary {
   id: string;
   category: BudgetCategory;
   total_cost: number;
+  percentage: number;
 }
 
 export interface Trip {
   id: string;
   title: string;
   destination: string;
+  travel_styles: string[];
   share_token: string;
   duration_days: number;
   traveler_count: number;

@@ -4,6 +4,7 @@ import type { Trip } from "@/types";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import ShareButton from "./ShareButton";
+import { exportTripPdf } from "./exportTripPdf";
 
 type Activity = Trip["itinerary_days"][number]["itinerary_activities"][number];
 
@@ -333,7 +334,10 @@ export default function TripPage({ trip }: { trip: Trip }) {
           <div className="flex gap-3">
             <ShareButton shareToken={trip.share_token} />
 
-            <button className="rounded-2xl bg-cyan-500 px-4 py-2 text-sm font-medium text-black hover:opacity-90">
+            <button
+              onClick={() => exportTripPdf(trip)}
+              className="rounded-2xl bg-cyan-500 px-4 py-2 text-sm font-medium text-black hover:opacity-90"
+            >
               Export PDF
             </button>
           </div>
