@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import TripView from "./TripView";
 import { notFound } from "next/navigation";
+import { logger } from "@/lib/logger";
 
 type PageProps = {
   params: Promise<{
@@ -8,9 +9,15 @@ type PageProps = {
   }>;
 };
 
-export default async function Page({ params }: PageProps) {
+export default async function TripsId({ params }: PageProps) {
   const { id } = await params;
   const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) notFound();
 
   const { data: trip } = await supabase
     .from("itineraries")
@@ -25,7 +32,10 @@ export default async function Page({ params }: PageProps) {
     `,
     )
     .eq("id", id)
+    .eq("user_id", user.id)
     .single();
+
+  logger.info({ data: trip });
 
   if (!trip) notFound();
 

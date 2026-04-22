@@ -39,6 +39,7 @@ export interface Trip {
   id: string;
   title: string;
   destination: string;
+  share_token: string;
   duration_days: number;
   traveler_count: number;
   budget_per_person: number;

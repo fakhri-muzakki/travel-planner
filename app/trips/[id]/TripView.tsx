@@ -1,8 +1,20 @@
 "use client";
 
 import type { Trip } from "@/types";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import ShareButton from "./ShareButton";
+
+type Activity = Trip["itinerary_days"][number]["itinerary_activities"][number];
+
+type Day = Trip["itinerary_days"][number];
+
+type ActivityForm = {
+  activity_name: string;
+  time_slot: "morning" | "afternoon" | "evening" | "night";
+  estimated_cost: number;
+  duration_minutes: number;
+};
 
 export default function TripPage({ trip }: { trip: Trip }) {
   const router = useRouter();
@@ -11,9 +23,27 @@ export default function TripPage({ trip }: { trip: Trip }) {
   const [isPending, startTransition] = useTransition();
   const [loadingDay, setLoadingDay] = useState<number | null>(null);
 
+  /** existing trip days copied into local editable state */
+  const [days, setDays] = useState<Day[]>(trip.itinerary_days);
+
+  /** modal states */
+  const [showForm, setShowForm] = useState(false);
+  const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
+
+  const [form, setForm] = useState<ActivityForm>({
+    activity_name: "",
+    time_slot: "morning",
+    estimated_cost: 0,
+    duration_minutes: 60,
+  });
+
+  useEffect(() => {
+    setDays(trip.itinerary_days);
+  }, [trip.itinerary_days]);
+
   const selectedDay = useMemo(() => {
-    return trip.itinerary_days.find((item) => item.day_number === activeDay);
-  }, [activeDay, trip.itinerary_days]);
+    return days.find((item) => item.day_number === activeDay);
+  }, [activeDay, days]);
 
   const totalBudget = trip.budget_per_person * trip.traveler_count;
 
@@ -78,6 +108,219 @@ export default function TripPage({ trip }: { trip: Trip }) {
     }
   };
 
+  /** ---------------- CRUD FRONTEND ONLY ---------------- */
+
+  const openCreateModal = () => {
+    setEditingActivity(null);
+
+    setForm({
+      activity_name: "",
+      time_slot: "morning",
+      estimated_cost: 0,
+      duration_minutes: 60,
+    });
+
+    setShowForm(true);
+  };
+
+  const openEditModal = (activity: Activity) => {
+    setEditingActivity(activity);
+
+    setForm({
+      activity_name: activity.activity_name,
+      time_slot: activity.time_slot as ActivityForm["time_slot"],
+      estimated_cost: Number(activity.estimated_cost),
+      duration_minutes: activity.duration_minutes,
+    });
+
+    setShowForm(true);
+  };
+
+  const closeModal = () => {
+    setShowForm(false);
+    setEditingActivity(null);
+  };
+
+  const saveActivity = async () => {
+    if (!selectedDay) return;
+
+    const activityName = form.activity_name.trim();
+
+    if (!activityName) {
+      alert("Activity name is required");
+      return;
+    }
+
+    try {
+      // ========================================
+      // UPDATE
+      // ========================================
+      if (editingActivity) {
+        const previousDays = days;
+
+        // Optimistic UI
+        setDays((prev) =>
+          prev.map((day) => {
+            if (day.day_number !== activeDay) return day;
+
+            return {
+              ...day,
+              itinerary_activities: day.itinerary_activities.map((item) =>
+                item.id === editingActivity.id
+                  ? {
+                      ...item,
+                      activity_name: activityName,
+                      time_slot: form.time_slot,
+                      estimated_cost: form.estimated_cost,
+                      duration_minutes: form.duration_minutes,
+                    }
+                  : item,
+              ),
+            };
+          }),
+        );
+
+        closeModal();
+
+        const response = await fetch(`/api/activities/${editingActivity.id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            activity_name: activityName,
+            time_slot: form.time_slot,
+            estimated_cost: form.estimated_cost,
+            duration_minutes: form.duration_minutes,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          setDays(previousDays);
+          throw new Error(result.error || "Failed to update activity");
+        }
+
+        return;
+      }
+
+      // ========================================
+      // CREATE
+      // ========================================
+      const tempId = crypto.randomUUID();
+
+      const optimisticActivity: Activity = {
+        id: tempId,
+        time_slot: form.time_slot,
+        activity_name: activityName,
+        estimated_cost: form.estimated_cost,
+        duration_minutes: form.duration_minutes,
+      };
+
+      const previousDays = days;
+
+      // Optimistic UI
+      setDays((prev) =>
+        prev.map((day) =>
+          day.day_number === activeDay
+            ? {
+                ...day,
+                itinerary_activities: [
+                  ...day.itinerary_activities,
+                  optimisticActivity,
+                ],
+              }
+            : day,
+        ),
+      );
+
+      closeModal();
+
+      const response = await fetch("/api/activities", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          day_id: selectedDay.id,
+          activity_name: activityName,
+          category: "attraction",
+          time_slot: form.time_slot,
+          estimated_cost: form.estimated_cost,
+          duration_minutes: form.duration_minutes,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setDays(previousDays);
+        throw new Error(result.error || "Failed to create activity");
+      }
+
+      const createdActivity = result.data;
+
+      // replace temp activity with real DB row
+      setDays((prev) =>
+        prev.map((day) =>
+          day.day_number === activeDay
+            ? {
+                ...day,
+                itinerary_activities: day.itinerary_activities.map((item) =>
+                  item.id === tempId ? createdActivity : item,
+                ),
+              }
+            : day,
+        ),
+      );
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to save activity");
+    }
+  };
+
+  const deleteActivity = async (activityId: string) => {
+    const confirmed = confirm("Delete this activity?");
+    if (!confirmed) return;
+
+    const previousDays = days;
+
+    // Optimistic UI update
+    setDays((prev) =>
+      prev.map((day) => {
+        if (day.day_number !== activeDay) return day;
+
+        return {
+          ...day,
+          itinerary_activities: day.itinerary_activities
+            .filter((item) => item.id !== activityId)
+            .map((item, index) => ({
+              ...item,
+              order_index: index + 1,
+            })),
+        };
+      }),
+    );
+
+    try {
+      const response = await fetch(`/api/activities/${activityId}`, {
+        method: "DELETE",
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to delete activity");
+      }
+    } catch (error) {
+      // rollback UI
+      setDays(previousDays);
+
+      alert(
+        error instanceof Error ? error.message : "Failed to delete activity",
+      );
+    }
+  };
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       {/* HEADER */}
@@ -88,9 +331,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
           </div>
 
           <div className="flex gap-3">
-            <button className="rounded-2xl border border-white/10 px-4 py-2 text-sm hover:bg-white/5">
-              Share
-            </button>
+            <ShareButton shareToken={trip.share_token} />
 
             <button className="rounded-2xl bg-cyan-500 px-4 py-2 text-sm font-medium text-black hover:opacity-90">
               Export PDF
@@ -139,7 +380,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
           <div className="space-y-6">
             {/* TABS */}
             <div className="flex gap-3 overflow-x-auto pb-1">
-              {trip.itinerary_days.map((day) => {
+              {days.map((day) => {
                 const active = activeDay === day.day_number;
 
                 return (
@@ -160,10 +401,10 @@ export default function TripPage({ trip }: { trip: Trip }) {
 
             {/* DAY DETAIL */}
             {selectedDay && (
-              <div className="rounded-3xl border border-white/10 bg-white/3 p-8 space-y-6">
+              <div className="space-y-6 rounded-3xl border border-white/10 bg-white/3 p-8">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <div className="text-sm text-cyan-300">
+                  <div className="">
+                    <div className="text-sm text-cyan-300 ">
                       Day {selectedDay.day_number}
                     </div>
 
@@ -172,15 +413,24 @@ export default function TripPage({ trip }: { trip: Trip }) {
                     </h2>
                   </div>
 
-                  <button
-                    onClick={() => regenerateDay(selectedDay.day_number)}
-                    disabled={isPending || loadingDay !== null}
-                    className="rounded-2xl border border-cyan-400/40 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-300 hover:bg-cyan-400/15 disabled:opacity-50"
-                  >
-                    {loadingDay === selectedDay.day_number
-                      ? "Regenerating..."
-                      : "Regenerate Day"}
-                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={openCreateModal}
+                      className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm hover:bg-white/10 text-nowrap"
+                    >
+                      Add Activity
+                    </button>
+
+                    <button
+                      onClick={() => regenerateDay(selectedDay.day_number)}
+                      disabled={isPending || loadingDay !== null}
+                      className="rounded-2xl border border-cyan-400/40 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-300 hover:bg-cyan-400/15 disabled:opacity-50 text-nowrap"
+                    >
+                      {loadingDay === selectedDay.day_number
+                        ? "Regenerating..."
+                        : "Regenerate Day"}
+                    </button>
+                  </div>
                 </div>
 
                 {selectedDay.itinerary_activities.map((item) => (
@@ -207,6 +457,22 @@ export default function TripPage({ trip }: { trip: Trip }) {
 
                         <div className="mt-1 text-xs text-white/45">
                           {item.duration_minutes} min
+                        </div>
+
+                        <div className="mt-3 flex justify-end gap-2">
+                          <button
+                            onClick={() => openEditModal(item)}
+                            className="rounded-xl border border-white/10 px-3 py-1 text-xs hover:bg-white/10"
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            onClick={() => deleteActivity(item.id)}
+                            className="rounded-xl border border-red-400/30 px-3 py-1 text-xs text-red-300 hover:bg-red-400/10"
+                          >
+                            Delete
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -250,7 +516,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
                   </div>
                 ))}
 
-                <div className="border-t border-white/10 pt-4 flex justify-between font-semibold">
+                <div className="flex justify-between border-t border-white/10 pt-4 font-semibold">
                   <span>Total</span>
                   <span>{formatMoney(totalBudget)}</span>
                 </div>
@@ -259,6 +525,89 @@ export default function TripPage({ trip }: { trip: Trip }) {
           </aside>
         </section>
       </main>
+
+      {/* MODAL */}
+      {showForm && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/70 px-6">
+          <div className="w-full max-w-xl rounded-3xl border border-white/10 bg-[#0a0a0a] p-6">
+            <h3 className="text-2xl font-semibold">
+              {editingActivity ? "Edit Activity" : "Add Activity"}
+            </h3>
+
+            <div className="mt-6 space-y-4">
+              <input
+                value={form.activity_name}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    activity_name: e.target.value,
+                  }))
+                }
+                placeholder="Activity name"
+                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
+              />
+
+              <select
+                value={form.time_slot}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    time_slot: e.target.value as ActivityForm["time_slot"],
+                  }))
+                }
+                className="w-full rounded-2xl border border-white/10 bg-[#0a0a0a] px-4 py-3 outline-none"
+              >
+                <option value="morning">Morning</option>
+                <option value="afternoon">Afternoon</option>
+                <option value="evening">Lunch</option>
+                <option value="night">Dinner</option>
+              </select>
+
+              <input
+                type="number"
+                value={form.estimated_cost}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    estimated_cost: Number(e.target.value),
+                  }))
+                }
+                placeholder="Estimated cost"
+                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
+              />
+
+              <input
+                type="number"
+                value={form.duration_minutes}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    duration_minutes: Number(e.target.value),
+                  }))
+                }
+                placeholder="Duration minutes"
+                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
+              />
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={closeModal}
+                className="rounded-2xl border border-white/10 px-4 py-2 text-sm hover:bg-white/5"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={saveActivity}
+                className="rounded-2xl bg-cyan-500 px-4 py-2 text-sm font-medium text-black hover:opacity-90"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
