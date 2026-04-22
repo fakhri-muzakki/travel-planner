@@ -175,7 +175,7 @@ export async function POST(request: Request) {
         budget_per_person: Math.floor(validated.budget / validated.travelers),
         currency: "IDR",
         travel_styles: validated.preferences ?? [],
-        pace: "moderate",
+        pace: validated.pace,
         status: "done",
       })
       .select("id")

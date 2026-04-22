@@ -1,20 +1,15 @@
 "use client";
 
 import type { Trip } from "@/types";
-import { useMemo, useState } from "react";
-
-/**
- * =====================================================
- * DUMMY DATA
- * nanti tinggal ganti:
- *
- * const trip = backendResponse;
- *
- * =====================================================
- */
+import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 
 export default function TripPage({ trip }: { trip: Trip }) {
+  const router = useRouter();
+
   const [activeDay, setActiveDay] = useState(1);
+  const [isPending, startTransition] = useTransition();
+  const [loadingDay, setLoadingDay] = useState<number | null>(null);
 
   const selectedDay = useMemo(() => {
     return trip.itinerary_days.find((item) => item.day_number === activeDay);
@@ -43,13 +38,45 @@ export default function TripPage({ trip }: { trip: Trip }) {
     night: "Dinner",
   };
 
-  const totalHotelaccommodation = trip.itinerary_budget_summary.find(
+  const totalHotelAccommodation = trip.itinerary_budget_summary.find(
     (p) => p.category === "accommodation",
   );
 
-  const hotelAccommodation = totalHotelaccommodation?.total_cost
-    ? Math.ceil(totalHotelaccommodation.total_cost / trip.duration_days)
+  const hotelAccommodation = totalHotelAccommodation?.total_cost
+    ? Math.ceil(totalHotelAccommodation.total_cost / trip.duration_days)
     : undefined;
+
+  const regenerateDay = async (dayNumber: number) => {
+    try {
+      setLoadingDay(dayNumber);
+
+      const response = await fetch(`/api/trips/${trip.id}/regenerate-day`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          dayNumber,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to regenerate day");
+      }
+
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch (error) {
+      alert(
+        error instanceof Error ? error.message : "Failed to regenerate day",
+      );
+    } finally {
+      setLoadingDay(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
@@ -134,14 +161,26 @@ export default function TripPage({ trip }: { trip: Trip }) {
             {/* DAY DETAIL */}
             {selectedDay && (
               <div className="rounded-3xl border border-white/10 bg-white/3 p-8 space-y-6">
-                <div>
-                  <div className="text-sm text-cyan-300">
-                    Day {selectedDay.day_number}
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <div className="text-sm text-cyan-300">
+                      Day {selectedDay.day_number}
+                    </div>
+
+                    <h2 className="mt-2 text-3xl font-semibold">
+                      {selectedDay.day_theme}
+                    </h2>
                   </div>
 
-                  <h2 className="mt-2 text-3xl font-semibold">
-                    {selectedDay.day_theme}
-                  </h2>
+                  <button
+                    onClick={() => regenerateDay(selectedDay.day_number)}
+                    disabled={isPending || loadingDay !== null}
+                    className="rounded-2xl border border-cyan-400/40 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-300 hover:bg-cyan-400/15 disabled:opacity-50"
+                  >
+                    {loadingDay === selectedDay.day_number
+                      ? "Regenerating..."
+                      : "Regenerate Day"}
+                  </button>
                 </div>
 
                 {selectedDay.itinerary_activities.map((item) => (
@@ -186,7 +225,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
 
                     <div className="shrink-0 text-right">
                       <div className="text-sm font-medium text-cyan-300">
-                        IDR {hotelAccommodation?.toLocaleString("id-ID")}{" "}
+                        IDR {hotelAccommodation?.toLocaleString("id-ID")}
                       </div>
                     </div>
                   </div>
@@ -197,7 +236,6 @@ export default function TripPage({ trip }: { trip: Trip }) {
 
           {/* RIGHT */}
           <aside className="space-y-6">
-            {/* BUDGET */}
             <div className="rounded-3xl border border-white/10 bg-white/3 p-6">
               <h3 className="text-xl font-semibold">Budget Breakdown</h3>
 
@@ -217,32 +255,6 @@ export default function TripPage({ trip }: { trip: Trip }) {
                   <span>{formatMoney(totalBudget)}</span>
                 </div>
               </div>
-            </div>
-
-            {/* TIPS */}
-            <div className="rounded-3xl border border-emerald-500/20 bg-emerald-500/10 p-6">
-              <h3 className="text-xl font-semibold">Pro Tips</h3>
-
-              <ul className="mt-4 space-y-3 text-sm text-white/75">
-                <li>• Buy Suica card for transport.</li>
-                <li>• Avoid rush hour trains.</li>
-                <li>• Carry some cash.</li>
-                <li>• Book attractions early.</li>
-                <li>• Keep flexible free time.</li>
-              </ul>
-            </div>
-
-            {/* CTA */}
-            <div className="rounded-3xl border border-white/10 bg-linear-to-br from-cyan-500/10 to-transparent p-6">
-              <div className="text-sm text-white/60">Need changes?</div>
-
-              <p className="mt-2 text-sm text-white/75">
-                Regenerate with another budget or travel style.
-              </p>
-
-              <button className="mt-4 w-full rounded-2xl border border-white/10 px-4 py-3 hover:bg-white/5">
-                Regenerate Trip
-              </button>
             </div>
           </aside>
         </section>
