@@ -13,6 +13,8 @@ export interface TripActivity {
   id: string;
   time_slot: TimeSlot;
   activity_name: string;
+  estimated_cost: number;
+  duration_minutes: number;
 }
 
 export interface TripAccommodation {

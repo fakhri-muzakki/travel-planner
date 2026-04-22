@@ -43,6 +43,14 @@ export default function TripPage({ trip }: { trip: Trip }) {
     night: "Dinner",
   };
 
+  const totalHotelaccommodation = trip.itinerary_budget_summary.find(
+    (p) => p.category === "accommodation",
+  );
+
+  const hotelAccommodation = totalHotelaccommodation?.total_cost
+    ? Math.ceil(totalHotelaccommodation.total_cost / trip.duration_days)
+    : undefined;
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       {/* HEADER */}
@@ -141,19 +149,46 @@ export default function TripPage({ trip }: { trip: Trip }) {
                     key={item.id}
                     className="rounded-2xl border border-white/10 bg-white/5 p-5"
                   >
-                    <div className="text-sm text-white/50">
-                      {labels[item.time_slot as keyof typeof labels]}
-                    </div>
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <div className="text-sm text-white/50">
+                          {labels[item.time_slot as keyof typeof labels]}
+                        </div>
 
-                    <div className="mt-2 font-medium">{item.activity_name}</div>
+                        <div className="mt-2 font-medium leading-7">
+                          {item.activity_name}
+                        </div>
+                      </div>
+
+                      <div className="shrink-0 text-right">
+                        <div className="text-sm font-medium text-cyan-300">
+                          IDR{" "}
+                          {Number(item.estimated_cost).toLocaleString("id-ID")}
+                        </div>
+
+                        <div className="mt-1 text-xs text-white/45">
+                          {item.duration_minutes} min
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 ))}
 
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                  <div className="text-sm text-white/50">Hotel</div>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="text-sm text-white/50">Hotel</div>
 
-                  <div className="mt-2 font-medium">
-                    {selectedDay.accommodation?.name}
+                      <div className="mt-2 font-medium leading-7">
+                        {selectedDay.accommodation?.name}
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 text-right">
+                      <div className="text-sm font-medium text-cyan-300">
+                        IDR {hotelAccommodation?.toLocaleString("id-ID")}{" "}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

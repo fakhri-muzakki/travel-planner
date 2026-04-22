@@ -28,20 +28,36 @@ const CreateTripSchema = v.object({
   ),
 
   preferences: v.optional(v.array(v.string())),
+
+  pace: v.pipe(v.string(), v.minLength(1, "Pace is required")),
+
+  dietary: v.optional(v.array(v.string())),
 });
 
 type CreateTripData = v.InferOutput<typeof CreateTripSchema>;
+
+const paceOptions = ["relaxed", "balanced", "packed"];
+
+const dietaryOptions = [
+  "Halal",
+  "Vegetarian",
+  "Vegan",
+  "Gluten Free",
+  "No Pork",
+];
 
 const CreateTripForm = ({ prefs }: { prefs: string[] }) => {
   const router = useRouter();
 
   const [selectedPrefs, setSelectedPrefs] = useState<string[]>([]);
+  const [selectedDietary, setSelectedDietary] = useState<string[]>([]);
   const [serverError, setServerError] = useState("");
 
   const {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<CreateTripData>({
     resolver: valibotResolver(CreateTripSchema),
@@ -52,8 +68,12 @@ const CreateTripForm = ({ prefs }: { prefs: string[] }) => {
       endDate: "",
       travelers: 1,
       preferences: [],
+      pace: "Balanced",
+      dietary: [],
     },
   });
+
+  const selectedPace = watch("pace");
 
   const togglePreference = (item: string) => {
     const exists = selectedPrefs.includes(item);
@@ -64,6 +84,17 @@ const CreateTripForm = ({ prefs }: { prefs: string[] }) => {
 
     setSelectedPrefs(updated);
     setValue("preferences", updated);
+  };
+
+  const toggleDietary = (item: string) => {
+    const exists = selectedDietary.includes(item);
+
+    const updated = exists
+      ? selectedDietary.filter((x) => x !== item)
+      : [...selectedDietary, item];
+
+    setSelectedDietary(updated);
+    setValue("dietary", updated);
   };
 
   const onSubmit = async (payload: CreateTripData) => {
@@ -86,7 +117,7 @@ const CreateTripForm = ({ prefs }: { prefs: string[] }) => {
         throw new Error(result.error || "Failed to generate trip");
       }
 
-      router.replace(`/trip/${result.tripId}`);
+      router.replace(`/trips/${result.tripId}`);
     } catch (error) {
       router.back();
 
@@ -98,6 +129,7 @@ const CreateTripForm = ({ prefs }: { prefs: string[] }) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
+      {/* Destination */}
       <div>
         <label className="mb-2 block text-sm text-white/70">Destination</label>
 
@@ -114,6 +146,7 @@ const CreateTripForm = ({ prefs }: { prefs: string[] }) => {
         )}
       </div>
 
+      {/* Budget + Travelers */}
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <label className="mb-2 block text-sm text-white/70">
@@ -138,9 +171,7 @@ const CreateTripForm = ({ prefs }: { prefs: string[] }) => {
           <input
             type="number"
             min="1"
-            {...register("travelers", {
-              valueAsNumber: true,
-            })}
+            {...register("travelers", { valueAsNumber: true })}
             className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-cyan-400"
           />
 
@@ -152,6 +183,7 @@ const CreateTripForm = ({ prefs }: { prefs: string[] }) => {
         </div>
       </div>
 
+      {/* Dates */}
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <label className="mb-2 block text-sm text-white/70">Start Date</label>
@@ -186,8 +218,9 @@ const CreateTripForm = ({ prefs }: { prefs: string[] }) => {
         </div>
       </div>
 
+      {/* Interests */}
       <div>
-        <label className="mb-3 block text-sm text-white/70">Preferences</label>
+        <label className="mb-3 block text-sm text-white/70">Interests</label>
 
         <div className="flex flex-wrap gap-3">
           {prefs.map((item) => {
@@ -211,8 +244,68 @@ const CreateTripForm = ({ prefs }: { prefs: string[] }) => {
         </div>
       </div>
 
+      {/* Dietary */}
+      <div>
+        <label className="mb-3 block text-sm text-white/70">
+          Dietary Preferences
+        </label>
+
+        <div className="flex flex-wrap gap-3">
+          {dietaryOptions.map((item) => {
+            const active = selectedDietary.includes(item);
+
+            return (
+              <button
+                type="button"
+                key={item}
+                onClick={() => toggleDietary(item)}
+                className={`rounded-full px-4 py-2 text-sm transition border ${
+                  active
+                    ? "border-emerald-400 bg-emerald-400/10 text-emerald-300"
+                    : "border-white/10 bg-white/5 hover:border-emerald-400/60"
+                }`}
+              >
+                {item}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Pace */}
+      <div>
+        <label className="mb-3 block text-sm text-white/70">Travel Pace</label>
+
+        <div className="grid grid-cols-3 gap-3">
+          {paceOptions.map((item) => {
+            const active = selectedPace === item;
+
+            return (
+              <button
+                type="button"
+                key={item}
+                onClick={() => setValue("pace", item)}
+                className={`rounded-2xl px-4 py-3 text-sm border transition capitalize ${
+                  active
+                    ? "border-cyan-400 bg-cyan-400/10 text-cyan-300"
+                    : "border-white/10 bg-white/5 hover:border-cyan-400/60"
+                }`}
+              >
+                {item}
+              </button>
+            );
+          })}
+        </div>
+
+        {errors.pace && (
+          <p className="mt-2 text-sm text-red-400">{errors.pace.message}</p>
+        )}
+      </div>
+
+      {/* Error */}
       {serverError && <p className="text-sm text-red-400">{serverError}</p>}
 
+      {/* Submit */}
       <button
         disabled={isSubmitting}
         className="w-full rounded-2xl bg-cyan-500 px-6 py-4 font-medium text-black hover:opacity-90 disabled:opacity-60"
