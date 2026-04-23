@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { valibotResolver } from "@hookform/resolvers/valibot";
 import * as v from "valibot";
+import toast from "react-hot-toast";
 
 const CreateTripSchema = v.object({
   destination: v.pipe(
@@ -118,6 +119,7 @@ const CreateTripForm = ({ prefs }: { prefs: string[] }) => {
       }
 
       router.replace(`/trips/${result.tripId}`);
+      toast.success("Created travel successfully");
     } catch (error) {
       router.back();
 

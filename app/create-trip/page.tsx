@@ -1,3 +1,4 @@
+import Link from "next/link";
 import CreateTripForm from "./CreateTripForm";
 
 export default function CreateTripPage() {
@@ -18,9 +19,14 @@ export default function CreateTripPage() {
           <div className="text-sm tracking-[0.3em] uppercase text-white/60">
             Travel Planner
           </div>
-          <button className="rounded-2xl border border-white/10 px-4 py-2 text-sm hover:bg-white/5">
+          <Link
+            href="/trips"
+            prefetch={false}
+            scroll={true}
+            className="rounded-2xl border border-white/10 px-4 py-2 text-sm hover:bg-white/5"
+          >
             Back Home
-          </button>
+          </Link>
         </div>
       </header>
 

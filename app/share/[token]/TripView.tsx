@@ -1,6 +1,9 @@
 "use client";
 
+import ActionMenu from "@/app/trips/[id]/components/ActionMenu";
+import { exportTripPdf } from "@/app/trips/[id]/exportTripPdf";
 import type { Trip } from "@/types";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 /**
@@ -61,13 +64,18 @@ export default function TripPage({ trip }: { trip: Trip }) {
           </div>
 
           <div className="flex gap-3">
-            <button className="rounded-2xl border border-white/10 px-4 py-2 text-sm hover:bg-white/5">
-              Share
-            </button>
-
-            <button className="rounded-2xl bg-cyan-500 px-4 py-2 text-sm font-medium text-black hover:opacity-90">
-              Export PDF
-            </button>
+            <ActionMenu
+              onExportPdf={() => exportTripPdf(trip)}
+              shareToken={trip.share_token}
+            />
+            <Link
+              href="/trips"
+              prefetch={false}
+              scroll={true}
+              className="rounded-2xl border border-white/10 px-4 py-2 text-sm hover:bg-white/5"
+            >
+              Back Home
+            </Link>
           </div>
         </div>
       </header>

@@ -70,8 +70,6 @@ export default async function SharePage({ params }: PageProps) {
     // .eq("is_public", true)
     .single();
 
-  console.log(trip);
-
   if (error || !trip) notFound();
 
   return <TripView trip={trip} />;

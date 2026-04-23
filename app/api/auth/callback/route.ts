@@ -5,8 +5,6 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
 
-  console.log("===================================");
-  console.log(origin);
   if (code) {
     const supabase = await createClient();
 

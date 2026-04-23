@@ -3,8 +3,10 @@
 import type { Trip } from "@/types";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import ShareButton from "./ShareButton";
 import { exportTripPdf } from "./exportTripPdf";
+import toast from "react-hot-toast";
+import ActionMenu from "./components/ActionMenu";
+import Link from "next/link";
 
 type Activity = Trip["itinerary_days"][number]["itinerary_activities"][number];
 
@@ -202,7 +204,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
           setDays(previousDays);
           throw new Error(result.error || "Failed to update activity");
         }
-
+        toast.success("Update activity successfully");
         return;
       }
 
@@ -275,6 +277,8 @@ export default function TripPage({ trip }: { trip: Trip }) {
             : day,
         ),
       );
+
+      toast.success("Created activity successfully");
     } catch (error) {
       alert(error instanceof Error ? error.message : "Failed to save activity");
     }
@@ -313,6 +317,8 @@ export default function TripPage({ trip }: { trip: Trip }) {
       if (!response.ok) {
         throw new Error(result.error || "Failed to delete activity");
       }
+
+      toast.success("Delete activity successfully");
     } catch (error) {
       // rollback UI
       setDays(previousDays);
@@ -332,14 +338,18 @@ export default function TripPage({ trip }: { trip: Trip }) {
           </div>
 
           <div className="flex gap-3">
-            <ShareButton shareToken={trip.share_token} />
-
-            <button
-              onClick={() => exportTripPdf(trip)}
-              className="rounded-2xl bg-cyan-500 px-4 py-2 text-sm font-medium text-black hover:opacity-90"
+            <ActionMenu
+              onExportPdf={() => exportTripPdf(trip)}
+              shareToken={trip.share_token}
+            />
+            <Link
+              href="/trips"
+              prefetch={false}
+              scroll={true}
+              className="rounded-2xl border border-white/10 px-4 py-2 text-sm hover:bg-white/5"
             >
-              Export PDF
-            </button>
+              Back Home
+            </Link>
           </div>
         </div>
       </header>

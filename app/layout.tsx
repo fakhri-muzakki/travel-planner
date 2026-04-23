@@ -34,7 +34,7 @@ export default function RootLayout({
           reverseOrder={false}
           gutter={8}
           toastOptions={{
-            duration: 5000,
+            duration: 3000,
             removeDelay: 1000,
 
             style: {
