@@ -16,7 +16,9 @@ type ActivityForm = {
   activity_name: string;
   time_slot: "morning" | "afternoon" | "evening" | "night";
   estimated_cost: number;
-  duration_minutes: number;
+  // duration_minutes: number;
+  start_time: string;
+  end_time: string;
 };
 
 export default function TripPage({ trip }: { trip: Trip }) {
@@ -37,7 +39,9 @@ export default function TripPage({ trip }: { trip: Trip }) {
     activity_name: "",
     time_slot: "morning",
     estimated_cost: 0,
-    duration_minutes: 60,
+    // duration_minutes: 60,
+    start_time: "",
+    end_time: "",
   });
 
   useEffect(() => {
@@ -120,7 +124,8 @@ export default function TripPage({ trip }: { trip: Trip }) {
       activity_name: "",
       time_slot: "morning",
       estimated_cost: 0,
-      duration_minutes: 60,
+      start_time: "",
+      end_time: "",
     });
 
     setShowForm(true);
@@ -129,11 +134,20 @@ export default function TripPage({ trip }: { trip: Trip }) {
   const openEditModal = (activity: Activity) => {
     setEditingActivity(activity);
 
+    const repliceAM = activity.duration_minutes.replace("AM", "");
+    const replicePM = repliceAM.replace("PM", "");
+    const time = replicePM.replace(/\s/g, "").split("-");
+    console.log("12:30- 13:30");
+    console.log(time);
     setForm({
       activity_name: activity.activity_name,
       time_slot: activity.time_slot as ActivityForm["time_slot"],
       estimated_cost: Number(activity.estimated_cost),
-      duration_minutes: activity.duration_minutes,
+      start_time: time[0],
+      end_time: time[1],
+      // start_time: activity.duration_minutes,
+      // start_time: activity.start_time,
+      // end_time: activity.end_time,
     });
 
     setShowForm(true);
@@ -175,7 +189,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
                       activity_name: activityName,
                       time_slot: form.time_slot,
                       estimated_cost: form.estimated_cost,
-                      duration_minutes: form.duration_minutes,
+                      duration_minutes: `${form.start_time} - ${form.end_time} ${Number(form.end_time[0]) > 12 ? "PM" : "AM"}`,
                     }
                   : item,
               ),
@@ -194,7 +208,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
             activity_name: activityName,
             time_slot: form.time_slot,
             estimated_cost: form.estimated_cost,
-            duration_minutes: form.duration_minutes,
+            duration_minutes: `${form.start_time} - ${form.end_time}`,
           }),
         });
 
@@ -218,7 +232,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
         time_slot: form.time_slot,
         activity_name: activityName,
         estimated_cost: form.estimated_cost,
-        duration_minutes: form.duration_minutes,
+        duration_minutes: `${form.start_time} - ${form.end_time}`,
       };
 
       const previousDays = days;
@@ -251,7 +265,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
           category: "attraction",
           time_slot: form.time_slot,
           estimated_cost: form.estimated_cost,
-          duration_minutes: form.duration_minutes,
+          duration_minutes: `${form.start_time} - ${form.end_time} ${Number(form.end_time[0]) > 12 ? "PM" : "AM"}`,
         }),
       });
 
@@ -548,67 +562,121 @@ export default function TripPage({ trip }: { trip: Trip }) {
       {showForm && (
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/70 px-6">
           <div className="w-full max-w-xl rounded-3xl border border-white/10 bg-[#0a0a0a] p-6">
+            {/* Header */}
             <h3 className="text-2xl font-semibold">
               {editingActivity ? "Edit Activity" : "Add Activity"}
             </h3>
 
-            <div className="mt-6 space-y-4">
-              <input
-                value={form.activity_name}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    activity_name: e.target.value,
-                  }))
-                }
-                placeholder="Activity name"
-                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
-              />
+            <p className="mt-2 text-sm text-white/50">
+              Fill in the activity details for this itinerary day.
+            </p>
 
-              <select
-                value={form.time_slot}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    time_slot: e.target.value as ActivityForm["time_slot"],
-                  }))
-                }
-                className="w-full rounded-2xl border border-white/10 bg-[#0a0a0a] px-4 py-3 outline-none"
-              >
-                <option value="morning">Morning</option>
-                <option value="afternoon">Afternoon</option>
-                <option value="evening">Lunch</option>
-                <option value="night">Dinner</option>
-              </select>
+            {/* Form */}
+            <div className="mt-6 space-y-5">
+              {/* Activity Name */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-white/75">
+                  Activity Name
+                </label>
 
-              <input
-                type="number"
-                value={form.estimated_cost}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    estimated_cost: Number(e.target.value),
-                  }))
-                }
-                placeholder="Estimated cost"
-                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
-              />
+                <input
+                  value={form.activity_name}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      activity_name: e.target.value,
+                    }))
+                  }
+                  placeholder="e.g. Visit Shibuya Sky"
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none transition focus:border-cyan-400"
+                />
+              </div>
 
-              <input
-                type="number"
-                value={form.duration_minutes}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    duration_minutes: Number(e.target.value),
-                  }))
-                }
-                placeholder="Duration minutes"
-                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
-              />
+              {/* Time Slot */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-white/75">
+                  Category Time
+                </label>
+
+                <select
+                  value={form.time_slot}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      time_slot: e.target.value as ActivityForm["time_slot"],
+                    }))
+                  }
+                  className="w-full rounded-2xl border border-white/10 bg-[#0a0a0a] px-4 py-3 outline-none transition focus:border-cyan-400"
+                >
+                  <option value="morning">Morning</option>
+                  <option value="afternoon">Afternoon</option>
+                  <option value="evening">Lunch</option>
+                  <option value="night">Dinner</option>
+                </select>
+              </div>
+
+              {/* Budget */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-white/75">
+                  Estimated Budget
+                </label>
+
+                <input
+                  type="number"
+                  value={form.estimated_cost}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      estimated_cost: Number(e.target.value),
+                    }))
+                  }
+                  placeholder="e.g. 150000"
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none transition focus:border-cyan-400"
+                />
+              </div>
+
+              {/* Start & End Time */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white/75">
+                    Start Time
+                  </label>
+
+                  <input
+                    type="time"
+                    value={form.start_time ?? ""}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        start_time: e.target.value,
+                      }))
+                    }
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none transition focus:border-cyan-400"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white/75">
+                    End Time
+                  </label>
+
+                  <input
+                    type="time"
+                    value={form.end_time ?? ""}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        end_time: e.target.value,
+                      }))
+                    }
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none transition focus:border-cyan-400"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="mt-6 flex justify-end gap-3">
+            {/* Footer */}
+            <div className="mt-8 flex justify-end gap-3">
               <button
                 onClick={closeModal}
                 className="rounded-2xl border border-white/10 px-4 py-2 text-sm hover:bg-white/5"
@@ -618,7 +686,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
 
               <button
                 onClick={saveActivity}
-                className="rounded-2xl bg-cyan-500 px-4 py-2 text-sm font-medium text-black hover:opacity-90"
+                className="rounded-2xl bg-cyan-500 px-5 py-2 text-sm font-medium text-black hover:opacity-90"
               >
                 Save
               </button>

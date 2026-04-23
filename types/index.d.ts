@@ -1,6 +1,6 @@
 export type TimeSlot = "morning" | "afternoon" | "evening" | "night";
 
-export type Pace = "relaxed" | "balanced" | "moderate" | "fast" | "packed";
+export type Pace = "relaxed" | "moderate" | "fast";
 
 export type BudgetCategory =
   | "transport"
@@ -14,7 +14,8 @@ export interface TripActivity {
   time_slot: TimeSlot;
   activity_name: string;
   estimated_cost: number;
-  duration_minutes: number;
+  // duration_minutes: number;
+  duration_minutes: string;
 }
 
 export interface TripAccommodation {
