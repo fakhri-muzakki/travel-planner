@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import CreateTripForm from "./CreateTripForm";
+import { createClient } from "@/lib/supabase/server";
 
-export default function CreateTripPage() {
+export default async function CreateTripPage() {
   const prefs = [
     "Food",
     "Nature",
@@ -12,6 +14,14 @@ export default function CreateTripPage() {
     "Shopping",
     "Relaxing",
   ];
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0a0a0a]/80 backdrop-blur-xl">
