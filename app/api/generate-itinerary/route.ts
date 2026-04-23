@@ -3,6 +3,7 @@ import { generateText } from "ai";
 import { NextResponse } from "next/server";
 import * as v from "valibot";
 import { createClient } from "@/lib/supabase/server";
+// import { logger } from "@/lib/logger";
 
 // ========================================
 // INPUT VALIDATION
@@ -52,7 +53,7 @@ type ItineraryRequest = v.InferOutput<typeof ItineraryRequestSchema>;
 const ActivitySchema = v.object({
   title: v.string(),
   time: v.string(), // 07:00
-  duration_minutes: v.number(),
+  time_range: v.string(),
   estimated_cost: v.number(),
 });
 
@@ -141,7 +142,7 @@ export async function POST(request: Request) {
         .trim();
 
       ai = v.parse(AIResponseSchema, JSON.parse(cleaned));
-
+      // logger.info({ data: ai });
       if (ai.days.length !== days) {
         throw new Error("Wrong total days");
       }
@@ -221,7 +222,8 @@ export async function POST(request: Request) {
           order_index: 1,
           activity_name: item.morning.title,
           category: "attraction",
-          duration_minutes: item.morning.duration_minutes,
+          // duration_minutes: item.morning.duration_minutes,
+          duration_minutes: item.morning.time_range,
           estimated_cost: item.morning.estimated_cost,
           tips: `Start ${item.morning.time}`,
         },
@@ -231,7 +233,8 @@ export async function POST(request: Request) {
           order_index: 2,
           activity_name: item.afternoon.title,
           category: "attraction",
-          duration_minutes: item.afternoon.duration_minutes,
+          // duration_minutes: item.afternoon.duration_minutes,
+          duration_minutes: item.afternoon.time_range,
           estimated_cost: item.afternoon.estimated_cost,
           tips: `Start ${item.afternoon.time}`,
         },
@@ -241,7 +244,8 @@ export async function POST(request: Request) {
           order_index: 3,
           activity_name: item.lunch.title,
           category: "restaurant",
-          duration_minutes: item.lunch.duration_minutes,
+          // duration_minutes: item.lunch.duration_minutes,
+          duration_minutes: item.lunch.time_range,
           estimated_cost: item.lunch.estimated_cost,
           tips: `Start ${item.lunch.time}`,
         },
@@ -251,7 +255,8 @@ export async function POST(request: Request) {
           order_index: 4,
           activity_name: item.dinner.title,
           category: "restaurant",
-          duration_minutes: item.dinner.duration_minutes,
+          // duration_minutes: item.dinner.duration_minutes,
+          duration_minutes: item.dinner.time_range,
           estimated_cost: item.dinner.estimated_cost,
           tips: `Start ${item.dinner.time}`,
         },
@@ -374,28 +379,28 @@ JSON FORMAT:
       "morning": {
         "title": "Visit park",
         "time": "07:00",
-        "duration_minutes": 120,
+        "time_range": "07:00 - 10:00 AM",
         "estimated_cost": 0
       },
 
       "lunch": {
         "title": "Lunch at restaurant",
         "time": "12:00",
-        "duration_minutes": 60,
+        "time_range": "12:00- 13:00 PM",
         "estimated_cost": 120000
       },
 
       "afternoon": {
         "title": "Museum visit",
         "time": "14:00",
-        "duration_minutes": 180,
+     "time_range": "14:00 - 16:00 PM",
         "estimated_cost": 90000
       },
 
       "dinner": {
         "title": "Dinner seafood",
         "time": "19:00",
-        "duration_minutes": 90,
+        "time_range": "19:00 - 20:00 PM",
         "estimated_cost": 180000
       }
     }

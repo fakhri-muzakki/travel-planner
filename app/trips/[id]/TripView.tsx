@@ -394,23 +394,27 @@ export default function TripPage({ trip }: { trip: Trip }) {
           <div className="space-y-6">
             {/* TABS */}
             <div className="flex gap-3 overflow-x-auto pb-1">
-              {days.map((day) => {
-                const active = activeDay === day.day_number;
+              {days
+                .sort((prev, current) =>
+                  prev.day_number > current.day_number ? 1 : -1,
+                )
+                .map((day) => {
+                  const active = activeDay === day.day_number;
 
-                return (
-                  <button
-                    key={day.id}
-                    onClick={() => setActiveDay(day.day_number)}
-                    className={`rounded-2xl border px-5 py-3 text-sm whitespace-nowrap transition ${
-                      active
-                        ? "border-cyan-400 bg-cyan-400/10 text-cyan-300"
-                        : "border-white/10 bg-white/5 hover:bg-white/10"
-                    }`}
-                  >
-                    Day {day.day_number}
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={day.id}
+                      onClick={() => setActiveDay(day.day_number)}
+                      className={`rounded-2xl border px-5 py-3 text-sm whitespace-nowrap transition ${
+                        active
+                          ? "border-cyan-400 bg-cyan-400/10 text-cyan-300"
+                          : "border-white/10 bg-white/5 hover:bg-white/10"
+                      }`}
+                    >
+                      Day {day.day_number}
+                    </button>
+                  );
+                })}
             </div>
 
             {/* DAY DETAIL */}
@@ -470,7 +474,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
                         </div>
 
                         <div className="mt-1 text-xs text-white/45">
-                          {item.duration_minutes} min
+                          {item.duration_minutes}
                         </div>
 
                         <div className="mt-3 flex justify-end gap-2">

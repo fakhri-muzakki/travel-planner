@@ -37,7 +37,7 @@ const CreateTripSchema = v.object({
 
 type CreateTripData = v.InferOutput<typeof CreateTripSchema>;
 
-const paceOptions = ["relaxed", "balanced", "packed"];
+const paceOptions = ["relaxed", "moderate", "fast"];
 
 const dietaryOptions = [
   "Halal",

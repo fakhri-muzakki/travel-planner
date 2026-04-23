@@ -175,7 +175,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
                         </div>
 
                         <div className="mt-1 text-xs text-white/45">
-                          {item.duration_minutes} min
+                          {item.duration_minutes}
                         </div>
                       </div>
                     </div>
