@@ -52,7 +52,11 @@ export default function TripPage({ trip }: { trip: Trip }) {
     return days.find((item) => item.day_number === activeDay);
   }, [activeDay, days]);
 
-  const totalBudget = trip.budget_per_person * trip.traveler_count;
+  // const totalBudget = trip.budget_per_person * trip.traveler_count;
+  const totalBudget = trip.itinerary_budget_summary.reduce(
+    (sum, item) => sum + (item.total_cost || 0),
+    0,
+  );
 
   const formatMoney = (value: number) =>
     new Intl.NumberFormat("id-ID", {
@@ -623,7 +627,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
 
                 <input
                   type="number"
-                  value={form.estimated_cost}
+                  value={form.estimated_cost || ""}
                   onChange={(e) =>
                     setForm((prev) => ({
                       ...prev,

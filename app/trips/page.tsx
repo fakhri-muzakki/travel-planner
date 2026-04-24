@@ -2,17 +2,20 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import LogoutButton from "./LogoutButton";
+import { cookies } from "next/headers";
 
 export default async function TripsPage() {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/user`,
+    {
+      headers: { Cookie: (await cookies()).toString() }, // Kirim cookies
+    },
+  );
+  const { user } = await response.json();
 
-  if (!user) {
-    redirect("/login");
-  }
+  if (!user) redirect("/login");
 
   const { data: trips } = await supabase
     .from("itineraries")
