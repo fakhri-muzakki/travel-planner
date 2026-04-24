@@ -3,7 +3,6 @@ import { generateText } from "ai";
 import { NextResponse } from "next/server";
 import * as v from "valibot";
 import { createClient } from "@/lib/supabase/server";
-// import { logger } from "@/lib/logger";
 
 // ========================================
 // INPUT VALIDATION
@@ -18,30 +17,8 @@ export const ItineraryRequestSchema = v.object({
 
   preferences: v.optional(v.array(v.string())),
 
-  // NEW
-  // dietary: v.optional(
-  //   v.picklist([
-  //     "Any",
-  //     "Halal",
-  //     "Vegetarian",
-  //     "Vegan",
-  //     "Pescatarian",
-  //     "Gluten Free",
-  //   ]),
-  // ),
   dietary: v.optional(v.array(v.string())),
-  // Nanti ganti ini
-  //   dietary: v.optional(
-  //   v.array(
-  //     v.picklist([
-  //       "Halal",
-  //       "Vegetarian",
-  //       "Vegan",
-  //       "Pescatarian",
-  //       "Gluten Free",
-  //     ])
-  //   )
-  // )
+
   pace: v.optional(v.picklist(["relaxed", "moderate", "fast"])),
 });
 
@@ -53,6 +30,7 @@ type ItineraryRequest = v.InferOutput<typeof ItineraryRequestSchema>;
 const ActivitySchema = v.object({
   title: v.string(),
   time: v.string(), // 07:00
+  category: v.string(),
   time_range: v.string(),
   estimated_cost: v.number(),
 });
@@ -66,6 +44,7 @@ const DaySchema = v.object({
   lunch: ActivitySchema,
   afternoon: ActivitySchema,
   dinner: ActivitySchema,
+  lodging: ActivitySchema,
 });
 
 const AIResponseSchema = v.object({
@@ -221,7 +200,7 @@ export async function POST(request: Request) {
           time_slot: "morning",
           order_index: 1,
           activity_name: item.morning.title,
-          category: "attraction",
+          category: item.morning.category,
           // duration_minutes: item.morning.duration_minutes,
           duration_minutes: item.morning.time_range,
           estimated_cost: item.morning.estimated_cost,
@@ -232,7 +211,7 @@ export async function POST(request: Request) {
           time_slot: "afternoon",
           order_index: 2,
           activity_name: item.afternoon.title,
-          category: "attraction",
+          category: item.afternoon.category,
           // duration_minutes: item.afternoon.duration_minutes,
           duration_minutes: item.afternoon.time_range,
           estimated_cost: item.afternoon.estimated_cost,
@@ -243,7 +222,7 @@ export async function POST(request: Request) {
           time_slot: "evening",
           order_index: 3,
           activity_name: item.lunch.title,
-          category: "restaurant",
+          category: item.lunch.category,
           // duration_minutes: item.lunch.duration_minutes,
           duration_minutes: item.lunch.time_range,
           estimated_cost: item.lunch.estimated_cost,
@@ -254,11 +233,22 @@ export async function POST(request: Request) {
           time_slot: "night",
           order_index: 4,
           activity_name: item.dinner.title,
-          category: "restaurant",
+          category: item.dinner.category,
           // duration_minutes: item.dinner.duration_minutes,
           duration_minutes: item.dinner.time_range,
           estimated_cost: item.dinner.estimated_cost,
           tips: `Start ${item.dinner.time}`,
+        },
+        {
+          day_id: insertedDay.id,
+          time_slot: "night",
+          order_index: 5,
+          activity_name: item.lodging.title,
+          category: item.lodging.category,
+          // duration_minutes: item.lodging.duration_minutes,
+          duration_minutes: item.lodging.time_range,
+          estimated_cost: item.lodging.estimated_cost,
+          tips: `Start ${item.lodging.time}`,
         },
       ];
 
@@ -366,6 +356,12 @@ IMPORTANT RULES:
   fast = packed itinerary
 - Total budget MUST NOT exceed ${input.budget}
 - Budget summary totals must match realistic trip cost
+- category allowed values:
+  attraction
+  restaurant
+  transport
+  accommodation
+- lodging activity MUST always use category: accommodation
 
 JSON FORMAT:
 
@@ -378,6 +374,7 @@ JSON FORMAT:
 
       "morning": {
         "title": "Visit park",
+        "category": "attraction",
         "time": "07:00",
         "time_range": "07:00 - 10:00 AM",
         "estimated_cost": 0
@@ -385,23 +382,34 @@ JSON FORMAT:
 
       "lunch": {
         "title": "Lunch at restaurant",
+        "category": "restaurant",
         "time": "12:00",
-        "time_range": "12:00- 13:00 PM",
+        "time_range": "12:00 - 13:00 PM",
         "estimated_cost": 120000
       },
 
       "afternoon": {
         "title": "Museum visit",
+        "category": "attraction",
         "time": "14:00",
-     "time_range": "14:00 - 16:00 PM",
+        "time_range": "14:00 - 16:00 PM",
         "estimated_cost": 90000
       },
 
       "dinner": {
         "title": "Dinner seafood",
+        "category": "restaurant",
         "time": "19:00",
         "time_range": "19:00 - 20:00 PM",
         "estimated_cost": 180000
+      },
+
+       "lodging": {
+        "title": "Check-in and stay at hotel",
+        "category": "accommodation",
+        "time": "21:00",
+        "time_range": "21:00 - Overnight",
+        "estimated_cost": 850000
       }
     }
   ],

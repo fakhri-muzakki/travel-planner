@@ -9,11 +9,18 @@ export type BudgetCategory =
   | "activities"
   | "misc";
 
+export type CategoryActivity =
+  | "attraction"
+  | "restaurant"
+  | "transport"
+  | "accommodation";
+
 export interface TripActivity {
   id: string;
   time_slot: TimeSlot;
   activity_name: string;
   estimated_cost: number;
+  category: CategoryActivity;
   // duration_minutes: number;
   duration_minutes: string;
 }

@@ -1,12 +1,13 @@
 "use client";
 
-import type { Trip } from "@/types";
+import type { CategoryActivity, Trip } from "@/types";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { exportTripPdf } from "./exportTripPdf";
 import toast from "react-hot-toast";
 import ActionMenu from "./components/ActionMenu";
 import Link from "next/link";
+import calculateTotalCost from "./calculateTotalCost";
 
 type Activity = Trip["itinerary_days"][number]["itinerary_activities"][number];
 
@@ -16,6 +17,7 @@ type ActivityForm = {
   activity_name: string;
   time_slot: "morning" | "afternoon" | "evening" | "night";
   estimated_cost: number;
+  category: CategoryActivity;
   // duration_minutes: number;
   start_time: string;
   end_time: string;
@@ -38,6 +40,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
   const [form, setForm] = useState<ActivityForm>({
     activity_name: "",
     time_slot: "morning",
+    category: "attraction",
     estimated_cost: 0,
     // duration_minutes: 60,
     start_time: "",
@@ -53,7 +56,27 @@ export default function TripPage({ trip }: { trip: Trip }) {
   }, [activeDay, days]);
 
   // const totalBudget = trip.budget_per_person * trip.traveler_count;
-  const totalBudget = trip.itinerary_budget_summary.reduce(
+
+  const totalBudgets = [
+    {
+      category: "transport",
+      total_cost: calculateTotalCost(days, "transport"),
+    },
+    {
+      category: "accommodation",
+      total_cost: calculateTotalCost(days, "accommodation"),
+    },
+    {
+      category: "food",
+      total_cost: calculateTotalCost(days, "restaurant"),
+    },
+    {
+      category: "activities",
+      total_cost: calculateTotalCost(days, "attraction"),
+    },
+  ];
+
+  const totalBudget = totalBudgets.reduce(
     (sum, item) => sum + (item.total_cost || 0),
     0,
   );
@@ -78,14 +101,6 @@ export default function TripPage({ trip }: { trip: Trip }) {
     evening: "Lunch",
     night: "Dinner",
   };
-
-  const totalHotelAccommodation = trip.itinerary_budget_summary.find(
-    (p) => p.category === "accommodation",
-  );
-
-  const hotelAccommodation = totalHotelAccommodation?.total_cost
-    ? Math.ceil(totalHotelAccommodation.total_cost / trip.duration_days)
-    : undefined;
 
   const regenerateDay = async (dayNumber: number) => {
     try {
@@ -127,6 +142,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
     setForm({
       activity_name: "",
       time_slot: "morning",
+      category: "attraction",
       estimated_cost: 0,
       start_time: "",
       end_time: "",
@@ -141,14 +157,14 @@ export default function TripPage({ trip }: { trip: Trip }) {
     const repliceAM = activity.duration_minutes.replace("AM", "");
     const replicePM = repliceAM.replace("PM", "");
     const time = replicePM.replace(/\s/g, "").split("-");
-    console.log("12:30- 13:30");
-    console.log(time);
     setForm({
       activity_name: activity.activity_name,
       time_slot: activity.time_slot as ActivityForm["time_slot"],
       estimated_cost: Number(activity.estimated_cost),
       start_time: time[0],
       end_time: time[1],
+      category: activity.category,
+      // category: "attraction",
       // start_time: activity.duration_minutes,
       // start_time: activity.start_time,
       // end_time: activity.end_time,
@@ -192,6 +208,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
                       ...item,
                       activity_name: activityName,
                       time_slot: form.time_slot,
+                      category: form.category,
                       estimated_cost: form.estimated_cost,
                       duration_minutes: `${form.start_time} - ${form.end_time} ${Number(form.end_time[0]) > 12 ? "PM" : "AM"}`,
                     }
@@ -211,6 +228,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
           body: JSON.stringify({
             activity_name: activityName,
             time_slot: form.time_slot,
+            category: form.category,
             estimated_cost: form.estimated_cost,
             duration_minutes: `${form.start_time} - ${form.end_time}`,
           }),
@@ -233,6 +251,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
 
       const optimisticActivity: Activity = {
         id: tempId,
+        category: form.category,
         time_slot: form.time_slot,
         activity_name: activityName,
         estimated_cost: form.estimated_cost,
@@ -266,7 +285,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
         body: JSON.stringify({
           day_id: selectedDay.id,
           activity_name: activityName,
-          category: "attraction",
+          category: form.category,
           time_slot: form.time_slot,
           estimated_cost: form.estimated_cost,
           duration_minutes: `${form.start_time} - ${form.end_time} ${Number(form.end_time[0]) > 12 ? "PM" : "AM"}`,
@@ -514,24 +533,6 @@ export default function TripPage({ trip }: { trip: Trip }) {
                     </div>
                   </div>
                 ))}
-
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="text-sm text-white/50">Hotel</div>
-
-                      <div className="mt-2 font-medium leading-7">
-                        {selectedDay.accommodation?.name}
-                      </div>
-                    </div>
-
-                    <div className="shrink-0 text-right">
-                      <div className="text-sm font-medium text-cyan-300">
-                        IDR {hotelAccommodation?.toLocaleString("id-ID")}
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             )}
           </div>
@@ -542,8 +543,8 @@ export default function TripPage({ trip }: { trip: Trip }) {
               <h3 className="text-xl font-semibold">Budget Breakdown</h3>
 
               <div className="mt-5 space-y-4 text-sm">
-                {trip.itinerary_budget_summary.map((item) => (
-                  <div key={item.id} className="flex justify-between">
+                {totalBudgets.map((item) => (
+                  <div key={item.category} className="flex justify-between">
                     <span className="capitalize text-white/55">
                       {item.category}
                     </span>
@@ -616,6 +617,29 @@ export default function TripPage({ trip }: { trip: Trip }) {
                   <option value="afternoon">Afternoon</option>
                   <option value="evening">Lunch</option>
                   <option value="night">Dinner</option>
+                </select>
+              </div>
+
+              {/* Category activity */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-white/75">
+                  Category Activity
+                </label>
+
+                <select
+                  value={form.category}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      category: e.target.value as ActivityForm["category"],
+                    }))
+                  }
+                  className="w-full rounded-2xl border border-white/10 bg-[#0a0a0a] px-4 py-3 outline-none transition focus:border-cyan-400"
+                >
+                  <option value="attraction">Activity</option>
+                  <option value="restaurant">Food</option>
+                  <option value="transport">Transport</option>
+                  <option value="accommodation">Accommodation</option>
                 </select>
               </div>
 

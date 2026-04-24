@@ -74,6 +74,13 @@ Budget total: ${trip.budget_per_person * trip.traveler_count}
 Travelers: ${trip.traveler_count}
 Pace: ${trip.pace}
 Preferences: ${(trip.travel_styles || []).join(", ")}
+IMPORTANT RULES:
+- category allowed values:
+  attraction
+  restaurant
+  transport
+  accommodation
+- lodging activity MUST always use category: accommodation
 
 Return ONLY JSON:
 
@@ -84,27 +91,38 @@ Return ONLY JSON:
   "morning": {
     "title": "",
     "time": "08:00",
-    "duration_minutes": 120,
+    "category": "attraction",
+    "time_range": "08:00 - 10:00 AM",
     "estimated_cost": 0
   },
   "lunch": {
     "title": "",
     "time": "12:00",
-    "duration_minutes": 60,
+     "category": "restaurant",
+     "time_range": "12:00 - 13:00 PM",
     "estimated_cost": 100000
   },
   "afternoon": {
     "title": "",
     "time": "14:00",
-    "duration_minutes": 180,
+    "category": "attraction",
+    "time_range": "14:00 - 16:00 PM",
     "estimated_cost": 0
   },
   "dinner": {
     "title": "",
     "time": "19:00",
-    "duration_minutes": 90,
+    "category": "restaurant",
+      "time_range": "19:00 - 20:00 PM",
     "estimated_cost": 150000
-  }
+  },
+  "lodging": {
+      "title": "Check-in and stay at hotel",
+      "category": "accommodation",
+      "time": "21:00",
+      "time_range": "21:00 - Overnight",
+      "estimated_cost": 850000
+    }
 }
 `;
 
@@ -166,6 +184,12 @@ Return ONLY JSON:
         category: "restaurant",
         ...ai.dinner,
       },
+      {
+        time_slot: "night",
+        order_index: 5,
+        category: "accommodation",
+        ...ai.lodging,
+      },
     ].map((item) => ({
       day_id: targetDay.id,
       time_slot: item.time_slot,
@@ -173,7 +197,7 @@ Return ONLY JSON:
       category: item.category,
       activity_name: item.title,
       tips: `Start ${item.time}`,
-      duration_minutes: item.duration_minutes,
+      duration_minutes: item.time_range,
       estimated_cost: item.estimated_cost,
     }));
 
