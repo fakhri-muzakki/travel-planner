@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import ActionMenu from "./components/ActionMenu";
 import Link from "next/link";
 import calculateTotalCost from "./calculateTotalCost";
+import ProcessingModal from "./components/ProcessingModal";
 
 type Activity = Trip["itinerary_days"][number]["itinerary_activities"][number];
 
@@ -29,6 +30,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
   const [activeDay, setActiveDay] = useState(1);
   const [isPending, startTransition] = useTransition();
   const [loadingDay, setLoadingDay] = useState<number | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   /** existing trip days copied into local editable state */
   const [days, setDays] = useState<Day[]>(trip.itinerary_days);
@@ -192,6 +194,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
       // ========================================
       // UPDATE
       // ========================================
+      setIsProcessing(true);
       if (editingActivity) {
         const previousDays = days;
 
@@ -241,6 +244,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
           throw new Error(result.error || "Failed to update activity");
         }
         toast.success("Update activity successfully");
+        setIsProcessing(false);
         return;
       }
 
@@ -316,6 +320,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
       );
 
       toast.success("Created activity successfully");
+      setIsProcessing(false);
     } catch (error) {
       alert(error instanceof Error ? error.message : "Failed to save activity");
     }
@@ -722,6 +727,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
           </div>
         </div>
       )}
+      {isProcessing && <ProcessingModal />}
     </div>
   );
 }
