@@ -1,7 +1,7 @@
 "use client";
 
 import ActionMenu from "@/app/trips/[id]/components/ActionMenu";
-import { exportTripPdf } from "@/app/trips/[id]/exportTripPdf";
+import { exportTripPdf } from "@/app/trips/[id]/_lib/exportTripPdf";
 import type { Trip } from "@/types";
 import Link from "next/link";
 import { useMemo, useState } from "react";

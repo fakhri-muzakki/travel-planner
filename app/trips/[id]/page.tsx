@@ -32,6 +32,10 @@ export default async function TripsId({ params }: PageProps) {
     )
     .eq("id", id)
     .eq("user_id", user.id)
+    .order("day_number", { foreignTable: "itinerary_days" })
+    .order("order_index", {
+      foreignTable: "itinerary_days.itinerary_activities",
+    })
     .single();
 
   if (!trip) notFound();
