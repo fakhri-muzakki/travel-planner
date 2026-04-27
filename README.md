@@ -82,6 +82,6 @@ Travel Planner is an AI-powered web application that helps users create personal
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/your-username/travel-planner.git
+git clone https://github.com/fakhri-muzakki/travel-planner.git
 cd travel-planner
 ```
