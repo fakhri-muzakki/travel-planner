@@ -10,18 +10,18 @@ const HeroSection = ({
   totalBudget: number;
 }) => {
   return (
-    <section className="rounded-3xl border border-white/10 bg-linear-to-br from-cyan-500/10 via-white/2 to-emerald-500/10 p-8 lg:p-10">
+    <section className="rounded-3xl border bg-linear-to-br from-primary/10 via-background to-emerald-500/10 p-8 lg:p-10">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div className="inline-flex rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70">
+          <div className="inline-flex rounded-full border bg-background/70 px-4 py-2 text-sm text-muted-foreground backdrop-blur-sm">
             AI Generated Itinerary
           </div>
 
-          <h1 className="mt-5 text-5xl font-semibold">
+          <h1 className="mt-5 text-5xl font-semibold tracking-tight">
             {trip.duration_days} Days in {trip.destination}
           </h1>
 
-          <p className="mt-4 max-w-3xl leading-8 text-white/65">
+          <p className="mt-4 max-w-3xl leading-8 text-muted-foreground">
             Personalized itinerary optimized for budget, pace, and traveler
             preferences.
           </p>

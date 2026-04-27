@@ -165,7 +165,6 @@ export const saveActivity = async ({
       ),
     );
 
-    //   toast.success("Created activity successfully");
     setIsProcessing(false);
   } catch (error) {
     alert(error instanceof Error ? error.message : "Failed to save activity");

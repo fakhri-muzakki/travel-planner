@@ -28,7 +28,7 @@ const LoginForm = () => {
   const onSubmit = async (payload: LoginData) => {
     const supabase = createClient();
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email: payload.email,
       password: payload.password,
     });
@@ -38,7 +38,6 @@ const LoginForm = () => {
       return;
     }
 
-    console.log("Login success:", data);
     toast.success("Login successfully");
 
     redirect("/trips");
@@ -47,65 +46,79 @@ const LoginForm = () => {
     <section className="flex items-center justify-center p-6 sm:p-10">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-md rounded-3xl border border-white/10 bg-white/3 backdrop-blur-xl p-8 shadow-2xl"
+        className="w-full max-w-md rounded-3xl border border-border bg-card/80 backdrop-blur-xl p-8 shadow-2xl"
       >
         <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-500/15 mb-6">
           ✈️
         </div>
+
         <h2 className="text-3xl font-semibold">Welcome back</h2>
-        <p className="mt-2 text-white/60">
+
+        <p className="mt-2 text-muted-foreground">
           Sign in to continue planning your next adventure.
         </p>
 
         <div className="mt-8 space-y-4">
           <input
-            className="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-cyan-400"
             {...register("email")}
             placeholder="Email address"
+            className="w-full rounded-2xl border border-input bg-background px-4 py-3 outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
           />
+
           {errors.email?.message && (
-            <p className="text-sm text-red-800"> {errors.email.message} </p>
+            <p className="text-sm text-destructive">{errors.email.message}</p>
           )}
+
           <input
             type="password"
             {...register("password")}
-            className="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-cyan-400"
             placeholder="Password"
+            className="w-full rounded-2xl border border-input bg-background px-4 py-3 outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
           />
+
           {errors.password?.message && (
-            <p className="text-sm text-red-800"> {errors.password.message} </p>
+            <p className="text-sm text-destructive">
+              {errors.password.message}
+            </p>
           )}
+
           <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 text-white/60">
-              <input type="checkbox" /> Remember me
+            <label className="flex items-center gap-2 text-muted-foreground">
+              <input type="checkbox" className="accent-primary" />
+              Remember me
             </label>
-            <button className="text-cyan-400 hover:text-cyan-300">
+
+            <button
+              type="button"
+              className="text-primary hover:opacity-80 transition"
+            >
               Forgot password?
             </button>
           </div>
+
           <button
-            className="w-full rounded-2xl bg-cyan-500 py-3 font-medium text-black hover:opacity-90 transition"
             type="submit"
+            className="w-full rounded-2xl bg-primary py-3 font-medium text-primary-foreground hover:opacity-90 transition"
           >
             Sign In
           </button>
         </div>
 
-        <div className="my-6 flex items-center gap-3 text-white/30">
-          <div className="h-px flex-1 bg-white/10" />
+        <div className="my-6 flex items-center gap-3 text-muted-foreground">
+          <div className="h-px flex-1 bg-border" />
           or
-          <div className="h-px flex-1 bg-white/10" />
+          <div className="h-px flex-1 bg-border" />
         </div>
 
         <GoogleButton />
 
-        <p className="mt-6 text-center text-sm text-white/50">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
           New here?{" "}
           <Link
             href="/register"
             prefetch={false}
             scroll={true}
-            className="text-cyan-400"
+            className="text-primary hover:opacity-80 transition"
           >
             Create account
           </Link>

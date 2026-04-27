@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-// import { logger } from "@/lib/logger";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    // logger.info({ data: body });
 
     const {
       day_id,

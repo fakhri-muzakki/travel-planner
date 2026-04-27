@@ -1,4 +1,3 @@
-// app/api/auth/user/route.ts
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";

@@ -197,58 +197,53 @@ export async function POST(request: Request) {
       const rows = [
         {
           day_id: insertedDay.id,
-          time_slot: "morning",
           order_index: 1,
-          activity_name: item.morning.title,
+          time_slot: "morning",
           category: item.morning.category,
-          // duration_minutes: item.morning.duration_minutes,
+          activity_name: item.morning.title,
+          tips: `Start ${item.morning.time}`,
           duration_minutes: item.morning.time_range,
           estimated_cost: item.morning.estimated_cost,
-          tips: `Start ${item.morning.time}`,
         },
         {
           day_id: insertedDay.id,
-          time_slot: "afternoon",
           order_index: 2,
-          activity_name: item.afternoon.title,
+          time_slot: "afternoon",
           category: item.afternoon.category,
-          // duration_minutes: item.afternoon.duration_minutes,
+          activity_name: item.afternoon.title,
+          tips: `Start ${item.afternoon.time}`,
           duration_minutes: item.afternoon.time_range,
           estimated_cost: item.afternoon.estimated_cost,
-          tips: `Start ${item.afternoon.time}`,
         },
         {
           day_id: insertedDay.id,
-          time_slot: "evening",
           order_index: 3,
-          activity_name: item.lunch.title,
+          time_slot: "evening",
           category: item.lunch.category,
-          // duration_minutes: item.lunch.duration_minutes,
+          activity_name: item.lunch.title,
+          tips: `Start ${item.lunch.time}`,
           duration_minutes: item.lunch.time_range,
           estimated_cost: item.lunch.estimated_cost,
-          tips: `Start ${item.lunch.time}`,
         },
         {
           day_id: insertedDay.id,
-          time_slot: "night",
           order_index: 4,
-          activity_name: item.dinner.title,
+          time_slot: "night",
           category: item.dinner.category,
-          // duration_minutes: item.dinner.duration_minutes,
+          tips: `Start ${item.dinner.time}`,
+          activity_name: item.dinner.title,
           duration_minutes: item.dinner.time_range,
           estimated_cost: item.dinner.estimated_cost,
-          tips: `Start ${item.dinner.time}`,
         },
         {
           day_id: insertedDay.id,
-          time_slot: "night",
           order_index: 5,
-          activity_name: item.lodging.title,
+          time_slot: "night",
           category: item.lodging.category,
-          // duration_minutes: item.lodging.duration_minutes,
+          tips: `Start ${item.lodging.time}`,
+          activity_name: item.lodging.title,
           duration_minutes: item.lodging.time_range,
           estimated_cost: item.lodging.estimated_cost,
-          tips: `Start ${item.lodging.time}`,
         },
       ];
 
@@ -312,9 +307,7 @@ export async function POST(request: Request) {
   }
 }
 
-// ========================================
-// PROMPT
-// ========================================
+// Prompt untuk generate travel
 function buildPrompt(input: ItineraryRequest, days: number) {
   return `
 Create realistic travel itinerary.

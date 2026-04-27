@@ -22,10 +22,10 @@ const DayTabs = ({ days, activeDay, setActiveDay }: DayTabsProps) => {
             <button
               key={day.id}
               onClick={() => setActiveDay(day.day_number)}
-              className={`rounded-2xl border px-5 py-3 text-sm whitespace-nowrap transition ${
+              className={`rounded-2xl border px-5 py-3 text-sm whitespace-nowrap transition-colors ${
                 active
-                  ? "border-cyan-400 bg-cyan-400/10 text-cyan-300"
-                  : "border-white/10 bg-white/5 hover:bg-white/10"
+                  ? "border-primary/30 bg-primary/10 font-medium text-primary"
+                  : "bg-background hover:bg-accent hover:text-accent-foreground"
               }`}
             >
               Day {day.day_number}

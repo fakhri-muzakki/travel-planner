@@ -1,6 +1,5 @@
 "use client";
 
-import * as v from "valibot";
 import GoogleButton from "../GoogleButton";
 import { valibotResolver } from "@hookform/resolvers/valibot";
 import { useForm } from "react-hook-form";
@@ -8,28 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { redirect } from "next/navigation";
 import toast from "react-hot-toast";
 import Link from "next/link";
-
-const RegisterSchema = v.pipe(
-  v.object({
-    full_name: v.pipe(v.string(), v.minLength(5, "Minimum 5 characters")),
-
-    email: v.pipe(v.string(), v.email("Invalid email address")),
-
-    password: v.pipe(v.string(), v.minLength(8, "Minimum 8 characters")),
-
-    confirm_password: v.string(),
-  }),
-
-  v.forward(
-    v.check(
-      (input) => input.password === input.confirm_password,
-      "Password confirmation does not match",
-    ),
-    ["confirm_password"],
-  ),
-);
-
-type RegisterData = v.InferOutput<typeof RegisterSchema>;
+import { RegisterSchema, type RegisterData } from "./schema";
 
 const RegisterForm = () => {
   const {
@@ -68,78 +46,95 @@ const RegisterForm = () => {
     <section className="flex items-center justify-center p-6 sm:p-10">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-md rounded-3xl border border-white/10 bg-white/3 backdrop-blur-xl p-8 shadow-2xl"
+        className="w-full max-w-md rounded-3xl border border-border bg-card/80 backdrop-blur-xl p-8 shadow-2xl"
       >
         <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/15 mb-6">
           🌍
         </div>
+
         <h2 className="text-3xl font-semibold">Create account</h2>
-        <p className="mt-2 text-white/60">
+
+        <p className="mt-2 text-muted-foreground">
           Join now and start planning unforgettable trips.
         </p>
 
         <div className="mt-8 space-y-4">
           <input
-            className="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-emerald-400"
-            placeholder="Full name"
             {...register("full_name")}
+            placeholder="Full name"
+            className="w-full rounded-2xl border border-input bg-background px-4 py-3 outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
           />
+
           {errors.full_name?.message && (
-            <p className="text-sm text-red-800"> {errors.full_name.message} </p>
-          )}
-          <input
-            className="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-emerald-400"
-            placeholder="Email address"
-            {...register("email")}
-          />
-          {errors.email?.message && (
-            <p className="text-sm text-red-800"> {errors.email.message} </p>
-          )}
-          <input
-            type="password"
-            className="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-emerald-400"
-            placeholder="Password"
-            {...register("password")}
-          />
-          {errors.password?.message && (
-            <p className="text-sm text-red-800"> {errors.password.message} </p>
-          )}
-          <input
-            type="password"
-            className="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-emerald-400"
-            placeholder="Confirm password"
-            {...register("confirm_password")}
-          />
-          {errors.confirm_password?.message && (
-            <p className="text-sm text-red-800">
-              {" "}
-              {errors.confirm_password.message}{" "}
+            <p className="text-sm text-destructive">
+              {errors.full_name.message}
             </p>
           )}
-          <label className="flex items-start gap-2 text-sm text-white/60">
-            <input type="checkbox" className="mt-1" />
+
+          <input
+            {...register("email")}
+            placeholder="Email address"
+            className="w-full rounded-2xl border border-input bg-background px-4 py-3 outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+          />
+
+          {errors.email?.message && (
+            <p className="text-sm text-destructive">{errors.email.message}</p>
+          )}
+
+          <input
+            type="password"
+            {...register("password")}
+            placeholder="Password"
+            className="w-full rounded-2xl border border-input bg-background px-4 py-3 outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+          />
+
+          {errors.password?.message && (
+            <p className="text-sm text-destructive">
+              {errors.password.message}
+            </p>
+          )}
+
+          <input
+            type="password"
+            {...register("confirm_password")}
+            placeholder="Confirm password"
+            className="w-full rounded-2xl border border-input bg-background px-4 py-3 outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+          />
+
+          {errors.confirm_password?.message && (
+            <p className="text-sm text-destructive">
+              {errors.confirm_password.message}
+            </p>
+          )}
+
+          <label className="flex items-start gap-2 text-sm text-muted-foreground">
+            <input type="checkbox" className="mt-1 accent-primary" />
             <span>I agree to the Terms of Service and Privacy Policy</span>
           </label>
-          <button className="w-full rounded-2xl bg-emerald-500 py-3 font-medium text-black hover:opacity-90 transition">
+
+          <button
+            type="submit"
+            className="w-full rounded-2xl bg-primary py-3 font-medium text-primary-foreground hover:opacity-90 transition"
+          >
             Create Account
           </button>
         </div>
 
-        <div className="my-6 flex items-center gap-3 text-white/30">
-          <div className="h-px flex-1 bg-white/10" />
+        <div className="my-6 flex items-center gap-3 text-muted-foreground">
+          <div className="h-px flex-1 bg-border" />
           or
-          <div className="h-px flex-1 bg-white/10" />
+          <div className="h-px flex-1 bg-border" />
         </div>
 
         <GoogleButton />
 
-        <p className="mt-6 text-center text-sm text-white/50">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
           Already have an account?{" "}
           <Link
             href="/login"
             prefetch={false}
             scroll={true}
-            className="text-cyan-400"
+            className="text-primary hover:opacity-80 transition"
           >
             Sign in
           </Link>

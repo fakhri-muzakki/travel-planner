@@ -1,8 +1,13 @@
-import { NextResponse } from "next/server";
 import * as v from "valibot";
-import { createClient } from "@/lib/supabase/server";
-import { google } from "@ai-sdk/google";
+import getPrompt from "./prompt";
 import { generateText } from "ai";
+import { logger } from "@/lib/logger";
+import { google } from "@ai-sdk/google";
+import type { AIResult } from "./types";
+import { NextResponse } from "next/server";
+import type { Trip, TripDay } from "@/types";
+import mapAiToActivities from "./mapAiToActivities";
+import { createClient } from "@/lib/supabase/server";
 
 const Schema = v.object({
   dayNumber: v.pipe(v.number(), v.minValue(1)),
@@ -15,12 +20,9 @@ export async function POST(
   try {
     const { id } = await params;
     const body = await request.json();
-
     const { dayNumber } = v.parse(Schema, body);
-
     const supabase = await createClient();
 
-    // auth
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -37,15 +39,15 @@ export async function POST(
       .from("itineraries")
       .select(
         `
-        *,
-        itinerary_days (
-          *
-        )
-      `,
+      *,
+      itinerary_days (
+        *
+      )
+    `,
       )
       .eq("id", id)
       .eq("user_id", user.id)
-      .single();
+      .single<Trip>();
 
     if (error || !trip) {
       return NextResponse.json(
@@ -55,7 +57,7 @@ export async function POST(
     }
 
     const targetDay = trip.itinerary_days.find(
-      (d: any) => d.day_number === dayNumber,
+      (d: TripDay) => d.day_number === dayNumber,
     );
 
     if (!targetDay) {
@@ -66,65 +68,7 @@ export async function POST(
     }
 
     // AI Generate
-    const prompt = `
-Regenerate ONLY day ${dayNumber} for this trip.
-
-Destination: ${trip.destination}
-Budget total: ${trip.budget_per_person * trip.traveler_count}
-Travelers: ${trip.traveler_count}
-Pace: ${trip.pace}
-Preferences: ${(trip.travel_styles || []).join(", ")}
-IMPORTANT RULES:
-- category allowed values:
-  attraction
-  restaurant
-  transport
-  accommodation
-- lodging activity MUST always use category: accommodation
-
-Return ONLY JSON:
-
-{
-  "day": ${dayNumber},
-  "title": "",
-  "hotel": "",
-  "morning": {
-    "title": "",
-    "time": "08:00",
-    "category": "attraction",
-    "time_range": "08:00 - 10:00 AM",
-    "estimated_cost": 0
-  },
-  "lunch": {
-    "title": "",
-    "time": "12:00",
-     "category": "restaurant",
-     "time_range": "12:00 - 13:00 PM",
-    "estimated_cost": 100000
-  },
-  "afternoon": {
-    "title": "",
-    "time": "14:00",
-    "category": "attraction",
-    "time_range": "14:00 - 16:00 PM",
-    "estimated_cost": 0
-  },
-  "dinner": {
-    "title": "",
-    "time": "19:00",
-    "category": "restaurant",
-      "time_range": "19:00 - 20:00 PM",
-    "estimated_cost": 150000
-  },
-  "lodging": {
-      "title": "Check-in and stay at hotel",
-      "category": "accommodation",
-      "time": "21:00",
-      "time_range": "21:00 - Overnight",
-      "estimated_cost": 850000
-    }
-}
-`;
+    const prompt = getPrompt({ dayNumber, trip });
 
     const { text } = await generateText({
       model: google("gemini-2.5-flash-lite"),
@@ -132,12 +76,14 @@ Return ONLY JSON:
       temperature: 0.8,
     });
 
-    const ai = JSON.parse(
+    const ai: AIResult = JSON.parse(
       text
         .replace(/```json/g, "")
         .replace(/```/g, "")
         .trim(),
     );
+
+    logger.info({ data: ai });
 
     // update day
     const { error: updateError } = await supabase
@@ -159,47 +105,7 @@ Return ONLY JSON:
       .eq("day_id", targetDay.id);
 
     // insert new activities
-    const rows = [
-      {
-        time_slot: "morning",
-        order_index: 1,
-        category: "attraction",
-        ...ai.morning,
-      },
-      {
-        time_slot: "evening",
-        order_index: 2,
-        category: "restaurant",
-        ...ai.lunch,
-      },
-      {
-        time_slot: "afternoon",
-        order_index: 3,
-        category: "attraction",
-        ...ai.afternoon,
-      },
-      {
-        time_slot: "night",
-        order_index: 4,
-        category: "restaurant",
-        ...ai.dinner,
-      },
-      {
-        time_slot: "night",
-        order_index: 5,
-        category: "accommodation",
-        ...ai.lodging,
-      },
-    ].map((item) => ({
-      day_id: targetDay.id,
-      time_slot: item.time_slot,
-      order_index: item.order_index,
-      category: item.category,
-      activity_name: item.title,
-      tips: `Start ${item.time}`,
-      duration_minutes: item.time_range,
-      estimated_cost: item.estimated_cost,
-    }));
+    const rows = mapAiToActivities(ai, targetDay.id);
 
     await supabase.from("itinerary_activities").insert(rows);
 

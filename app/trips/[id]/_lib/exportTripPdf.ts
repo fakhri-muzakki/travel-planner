@@ -13,7 +13,6 @@ export async function exportTripPdf(trip: Trip) {
   }) as React.ReactElement<DocumentProps>;
 
   const blob = await pdf(element).toBlob();
-
   const url = URL.createObjectURL(blob);
 
   const link = document.createElement("a");

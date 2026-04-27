@@ -21,7 +21,6 @@ export interface TripActivity {
   activity_name: string;
   estimated_cost: number;
   category: CategoryActivity;
-  // duration_minutes: number;
   duration_minutes: string;
 }
 

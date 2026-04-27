@@ -5,33 +5,6 @@ import React from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import type { TripBudgetSummary, TripDay } from "@/types";
 
-// type Activity = {
-//   id: string;
-//   activity_name: string;
-//   time_slot: string;
-//   estimated_cost: number;
-//   duration_minutes: number;
-//   tips?: string | null;
-// };
-
-// type Day = {
-//   id: string;
-//   day_number: number;
-//   date: string;
-//   day_theme: string;
-//   accommodation?: {
-//     name?: string;
-//   };
-//   itinerary_activities: Activity[];
-// };
-
-// type Budget = {
-//   id: string;
-//   category: string;
-//   total_cost: number;
-//   percentage: number;
-// };
-
 type Trip = {
   title: string;
   destination: string;

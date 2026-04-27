@@ -237,7 +237,7 @@ export default function TripPage({ trip }: { trip: Trip }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-background text-foreground">
       {/* HEADER */}
       <Header trip={trip} />
 

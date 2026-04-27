@@ -10,9 +10,6 @@ export async function DELETE(
 
     const supabase = await createClient();
 
-    // ========================================
-    // AUTH
-    // ========================================
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -27,9 +24,7 @@ export async function DELETE(
       );
     }
 
-    // ========================================
     // FIND ACTIVITY + OWNERSHIP
-    // ========================================
     const { data: activity, error: findError } = await supabase
       .from("itinerary_activities")
       .select(
@@ -77,9 +72,7 @@ export async function DELETE(
       );
     }
 
-    // ========================================
-    // DELETE
-    // ========================================
+    // Delete
     const { error: deleteError } = await supabase
       .from("itinerary_activities")
       .delete()
@@ -128,9 +121,6 @@ export async function PATCH(
 
     const supabase = await createClient();
 
-    // ========================================
-    // AUTH
-    // ========================================
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -145,9 +135,7 @@ export async function PATCH(
       );
     }
 
-    // ========================================
     // FIND ACTIVITY + OWNERSHIP
-    // ========================================
     const { data: activity, error: findError } = await supabase
       .from("itinerary_activities")
       .select(
@@ -220,9 +208,7 @@ export async function PATCH(
       );
     }
 
-    // ========================================
-    // UPDATE
-    // ========================================
+    // Update
     const { data: updatedActivity, error: updateError } = await supabase
       .from("itinerary_activities")
       .update(payload)

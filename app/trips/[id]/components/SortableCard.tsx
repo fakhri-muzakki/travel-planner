@@ -27,7 +27,7 @@ export function SortableCard({
       <button
         {...attributes}
         {...listeners}
-        className="absolute right-4 top-4 cursor-grab text-white/30 hover:text-white"
+        className="absolute right-4 top-4 cursor-grab rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground active:cursor-grabbing"
       >
         <GripVertical className="h-5 w-5" />
       </button>

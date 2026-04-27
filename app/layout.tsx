@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import { ThemeProvider } from "@/components/theme-provider";
+import { ModeToggle } from "@/components/ModeToggle";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,55 +26,58 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
-        <Toaster
-          position="top-right"
-          reverseOrder={false}
-          gutter={8}
-          toastOptions={{
-            duration: 3000,
-            removeDelay: 1000,
-
-            style: {
-              background: "#111111",
-              color: "#ffffff",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: "16px",
-              padding: "14px 16px",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.45)",
-              backdropFilter: "blur(10px)",
-            },
-
-            success: {
+        <ThemeProvider>
+          {children}
+          <ModeToggle />
+          <Toaster
+            position="top-right"
+            reverseOrder={false}
+            gutter={8}
+            toastOptions={{
               duration: 3000,
-              style: {
-                background: "#0f1512",
-                color: "#ffffff",
-                border: "1px solid rgba(16,185,129,0.25)",
-              },
-              iconTheme: {
-                primary: "#10b981",
-                secondary: "#0a0a0a",
-              },
-            },
+              removeDelay: 1000,
 
-            error: {
               style: {
-                background: "#170d0d",
-                color: "#ffffff",
-                border: "1px solid rgba(239,68,68,0.25)",
+                background: "hsl(var(--card))",
+                color: "hsl(var(--card-foreground))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: "16px",
+                padding: "14px 16px",
+                boxShadow: "0 10px 30px rgba(0,0,0,0.18)",
+                backdropFilter: "blur(10px)",
               },
-              iconTheme: {
-                primary: "#ef4444",
-                secondary: "#0a0a0a",
+
+              success: {
+                duration: 3000,
+                style: {
+                  background: "rgba(16,185,129,0.10)",
+                  color: "hsl(var(--foreground))",
+                  border: "1px solid rgba(16,185,129,0.25)",
+                },
+                iconTheme: {
+                  primary: "#10b981",
+                  secondary: "hsl(var(--background))",
+                },
               },
-            },
-          }}
-        />
+
+              error: {
+                style: {
+                  background: "rgba(239,68,68,0.10)",
+                  color: "hsl(var(--foreground))",
+                  border: "1px solid rgba(239,68,68,0.25)",
+                },
+                iconTheme: {
+                  primary: "#ef4444",
+                  secondary: "hsl(var(--background))",
+                },
+              },
+            }}
+          />
+        </ThemeProvider>
       </body>
     </html>
   );
