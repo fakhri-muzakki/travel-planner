@@ -70,23 +70,27 @@ export default function TripPage({ trip }: { trip: Trip }) {
           <div className="space-y-6">
             {/* TABS */}
             <div className="flex gap-3 overflow-x-auto pb-1">
-              {trip.itinerary_days.map((day) => {
-                const active = activeDay === day.day_number;
+              {trip.itinerary_days
+                .sort((prev, current) =>
+                  prev.day_number > current.day_number ? 1 : -1,
+                )
+                .map((day) => {
+                  const active = activeDay === day.day_number;
 
-                return (
-                  <button
-                    key={day.id}
-                    onClick={() => setActiveDay(day.day_number)}
-                    className={`whitespace-nowrap rounded-2xl border px-5 py-3 text-sm transition ${
-                      active
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "bg-card hover:bg-accent hover:text-accent-foreground"
-                    }`}
-                  >
-                    Day {day.day_number}
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={day.id}
+                      onClick={() => setActiveDay(day.day_number)}
+                      className={`whitespace-nowrap rounded-2xl border px-5 py-3 text-sm transition ${
+                        active
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "bg-card hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                    >
+                      Day {day.day_number}
+                    </button>
+                  );
+                })}
             </div>
 
             {/* DAY DETAIL */}
@@ -191,17 +195,6 @@ export default function TripPage({ trip }: { trip: Trip }) {
             </div>
 
             {/* CTA */}
-            <div className="rounded-3xl border bg-linear-to-br from-primary/10 to-transparent p-6">
-              <div className="text-muted-foreground text-sm">Need changes?</div>
-
-              <p className="text-muted-foreground mt-2 text-sm">
-                Regenerate with another budget or travel style.
-              </p>
-
-              <button className="mt-4 w-full rounded-2xl border px-4 py-3 transition-colors hover:bg-accent hover:text-accent-foreground">
-                Regenerate Trip
-              </button>
-            </div>
           </aside>
         </section>
       </main>

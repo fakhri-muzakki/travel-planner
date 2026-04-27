@@ -5,31 +5,26 @@ const mapAiToActivities = (ai: AIResult, id: string) => {
     {
       time_slot: "morning",
       order_index: 1,
-      // category: "attraction",
       ...ai.morning,
     },
     {
       time_slot: "evening",
       order_index: 2,
-      // category: "restaurant",
       ...ai.lunch,
     },
     {
       time_slot: "afternoon",
       order_index: 3,
-      // category: "attraction",
       ...ai.afternoon,
     },
     {
       time_slot: "night",
       order_index: 4,
-      // category: "restaurant",
       ...ai.dinner,
     },
     {
       time_slot: "night",
       order_index: 5,
-      // category: "accommodation",
       ...ai.lodging,
     },
   ].map((item) => ({

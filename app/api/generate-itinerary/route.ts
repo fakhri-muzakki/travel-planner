@@ -3,65 +3,14 @@ import { generateText } from "ai";
 import { NextResponse } from "next/server";
 import * as v from "valibot";
 import { createClient } from "@/lib/supabase/server";
+import {
+  AIResponseSchema,
+  ItineraryRequestSchema,
+  type AIResponse,
+} from "./schema";
+import buildPrompt from "./buildPrompt";
+import mapActivities from "./mapActivities";
 
-// ========================================
-// INPUT VALIDATION
-// ========================================
-export const ItineraryRequestSchema = v.object({
-  destination: v.pipe(v.string(), v.trim(), v.minLength(1)),
-  budget: v.pipe(v.number(), v.minValue(100000)),
-  startDate: v.string(),
-  endDate: v.string(),
-
-  travelers: v.pipe(v.number(), v.minValue(1), v.maxValue(10)),
-
-  preferences: v.optional(v.array(v.string())),
-
-  dietary: v.optional(v.array(v.string())),
-
-  pace: v.optional(v.picklist(["relaxed", "moderate", "fast"])),
-});
-
-type ItineraryRequest = v.InferOutput<typeof ItineraryRequestSchema>;
-
-// ========================================
-// AI RESPONSE VALIDATION
-// ========================================
-const ActivitySchema = v.object({
-  title: v.string(),
-  time: v.string(), // 07:00
-  category: v.string(),
-  time_range: v.string(),
-  estimated_cost: v.number(),
-});
-
-const DaySchema = v.object({
-  day: v.number(),
-  title: v.string(),
-  hotel: v.string(),
-
-  morning: ActivitySchema,
-  lunch: ActivitySchema,
-  afternoon: ActivitySchema,
-  dinner: ActivitySchema,
-  lodging: ActivitySchema,
-});
-
-const AIResponseSchema = v.object({
-  days: v.array(DaySchema),
-  budget: v.object({
-    transportation: v.number(),
-    accommodation: v.number(),
-    food: v.number(),
-    activities: v.number(),
-  }),
-});
-
-type AIResponse = v.InferOutput<typeof AIResponseSchema>;
-
-// ========================================
-// POST
-// ========================================
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
@@ -194,58 +143,7 @@ export async function POST(request: Request) {
         throw dayError;
       }
 
-      const rows = [
-        {
-          day_id: insertedDay.id,
-          order_index: 1,
-          time_slot: "morning",
-          category: item.morning.category,
-          activity_name: item.morning.title,
-          tips: `Start ${item.morning.time}`,
-          duration_minutes: item.morning.time_range,
-          estimated_cost: item.morning.estimated_cost,
-        },
-        {
-          day_id: insertedDay.id,
-          order_index: 2,
-          time_slot: "afternoon",
-          category: item.afternoon.category,
-          activity_name: item.afternoon.title,
-          tips: `Start ${item.afternoon.time}`,
-          duration_minutes: item.afternoon.time_range,
-          estimated_cost: item.afternoon.estimated_cost,
-        },
-        {
-          day_id: insertedDay.id,
-          order_index: 3,
-          time_slot: "evening",
-          category: item.lunch.category,
-          activity_name: item.lunch.title,
-          tips: `Start ${item.lunch.time}`,
-          duration_minutes: item.lunch.time_range,
-          estimated_cost: item.lunch.estimated_cost,
-        },
-        {
-          day_id: insertedDay.id,
-          order_index: 4,
-          time_slot: "night",
-          category: item.dinner.category,
-          tips: `Start ${item.dinner.time}`,
-          activity_name: item.dinner.title,
-          duration_minutes: item.dinner.time_range,
-          estimated_cost: item.dinner.estimated_cost,
-        },
-        {
-          day_id: insertedDay.id,
-          order_index: 5,
-          time_slot: "night",
-          category: item.lodging.category,
-          tips: `Start ${item.lodging.time}`,
-          activity_name: item.lodging.title,
-          duration_minutes: item.lodging.time_range,
-          estimated_cost: item.lodging.estimated_cost,
-        },
-      ];
+      const rows = mapActivities(insertedDay.id, item);
 
       const { error: activityError } = await supabase
         .from("itinerary_activities")
@@ -305,116 +203,4 @@ export async function POST(request: Request) {
       { status: 500 },
     );
   }
-}
-
-// Prompt untuk generate travel
-function buildPrompt(input: ItineraryRequest, days: number) {
-  return `
-Create realistic travel itinerary.
-
-Destination:
-${input.destination}
-
-Budget:
-${input.budget} IDR
-
-Travelers:
-${input.travelers}
-
-Duration:
-${days} days
-
-Preferences:
-${input.preferences?.join(", ") || "Any"}
-
-Dietary:
-${input.dietary || "Any"}
-
-Pace:
-${input.pace || "moderate"}
-
-IMPORTANT RULES:
-- Return ONLY valid JSON
-- No markdown
-- No explanation
-- No code fences
-- Use integer numbers only
-- Create EXACTLY ${days} days
-- Respect dietary preference for lunch and dinner
-- If Halal, only halal-friendly restaurants
-- If Vegetarian/Vegan, food must match
-- Pace affects schedule:
-  relaxed = fewer activities + more free time
-  moderate = balanced itinerary
-  fast = packed itinerary
-- Total budget MUST NOT exceed ${input.budget}
-- Budget summary totals must match realistic trip cost
-- category allowed values:
-  attraction
-  restaurant
-  transport
-  accommodation
-- lodging activity MUST always use category: accommodation
-
-JSON FORMAT:
-
-{
-  "days": [
-    {
-      "day": 1,
-      "title": "Theme",
-      "hotel": "Hotel Name",
-
-      "morning": {
-        "title": "Visit park",
-        "category": "attraction",
-        "time": "07:00",
-        "time_range": "07:00 - 10:00 AM",
-        "estimated_cost": 0
-      },
-
-      "lunch": {
-        "title": "Lunch at restaurant",
-        "category": "restaurant",
-        "time": "12:00",
-        "time_range": "12:00 - 13:00 PM",
-        "estimated_cost": 120000
-      },
-
-      "afternoon": {
-        "title": "Museum visit",
-        "category": "attraction",
-        "time": "14:00",
-        "time_range": "14:00 - 16:00 PM",
-        "estimated_cost": 90000
-      },
-
-      "dinner": {
-        "title": "Dinner seafood",
-        "category": "restaurant",
-        "time": "19:00",
-        "time_range": "19:00 - 20:00 PM",
-        "estimated_cost": 180000
-      },
-
-       "lodging": {
-        "title": "Check-in and stay at hotel",
-        "category": "accommodation",
-        "time": "21:00",
-        "time_range": "21:00 - Overnight",
-        "estimated_cost": 850000
-      }
-    }
-  ],
-
-  "budget": {
-    "transportation": 0,
-    "accommodation": 0,
-    "food": 0,
-    "activities": 0
-  }
-}
-
-Total budget max ${input.budget}.
-`;
 }
