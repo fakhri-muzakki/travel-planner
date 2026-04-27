@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import CreateTripForm from "./CreateTripForm";
-import { createClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
 
 const prefs = [
   "Food",
@@ -15,11 +15,13 @@ const prefs = [
 ];
 
 export default async function CreateTripPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/user`,
+    {
+      headers: { Cookie: (await cookies()).toString() }, // Kirim cookies
+    },
+  );
+  const { user } = await response.json();
 
   if (!user) redirect("/login");
 

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/client";
 import { notFound } from "next/navigation";
 import TripView from "./TripView";
 
@@ -11,7 +11,7 @@ type PageProps = {
 export default async function SharePage({ params }: PageProps) {
   const { token } = await params;
 
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { data: trip, error } = await supabase
     .from("itineraries")

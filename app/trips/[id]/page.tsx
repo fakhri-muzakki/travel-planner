@@ -1,6 +1,7 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/client";
 import TripView from "./TripView";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
 type PageProps = {
   params: Promise<{
@@ -10,13 +11,17 @@ type PageProps = {
 
 export default async function TripsId({ params }: PageProps) {
   const { id } = await params;
-  const supabase = await createClient();
+  const supabase = createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/user`,
+    {
+      headers: { Cookie: (await cookies()).toString() }, // Kirim cookies
+    },
+  );
+  const { user } = await response.json();
 
-  if (!user) notFound();
+  if (!user) redirect("/login");
 
   const { data: trip } = await supabase
     .from("itineraries")

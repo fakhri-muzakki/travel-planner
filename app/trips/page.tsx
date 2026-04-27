@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/client";
 import { cookies } from "next/headers";
 import Hero from "./components/Hero";
 import Navbar from "./components/Navbar";
@@ -7,7 +7,7 @@ import EmptyTrips from "./components/EmptyTrips";
 import TravelCard from "./components/TravelCard";
 
 export default async function TripsPage() {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/user`,
