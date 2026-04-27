@@ -70,7 +70,7 @@ export async function POST(request: Request) {
         .trim();
 
       ai = v.parse(AIResponseSchema, JSON.parse(cleaned));
-      // logger.info({ data: ai });
+
       if (ai.days.length !== days) {
         throw new Error("Wrong total days");
       }

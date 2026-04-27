@@ -1,7 +1,6 @@
 import * as v from "valibot";
 import getPrompt from "./prompt";
 import { generateText } from "ai";
-import { logger } from "@/lib/logger";
 import { google } from "@ai-sdk/google";
 import type { AIResult } from "./types";
 import { NextResponse } from "next/server";
@@ -82,8 +81,6 @@ export async function POST(
         .replace(/```/g, "")
         .trim(),
     );
-
-    logger.info({ data: ai });
 
     // update day
     const { error: updateError } = await supabase
