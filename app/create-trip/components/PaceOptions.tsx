@@ -51,7 +51,7 @@ const PaceOptions = ({ errors, setValue, watch }: PaceOptionsProps) => {
               className={`rounded-2xl border px-4 py-3 text-sm capitalize transition ${
                 active
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-input bg-background hover:border-primary/60"
+                  : "border-input bg-card hover:border-primary/60"
               }`}
             >
               {item}

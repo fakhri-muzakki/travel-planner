@@ -29,7 +29,7 @@ const BudgetAndTravelers = ({ errors, register }: BudgetAndTravelersProps) => {
           type="number"
           placeholder="5000000"
           {...register("budget", { valueAsNumber: true })}
-          className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-2xl border px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          className="border-input bg-card ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-2xl border px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         />
 
         {errors.budget && (
@@ -48,7 +48,7 @@ const BudgetAndTravelers = ({ errors, register }: BudgetAndTravelersProps) => {
           type="number"
           min="1"
           {...register("travelers", { valueAsNumber: true })}
-          className="border-input bg-background ring-offset-background focus-visible:ring-ring w-full rounded-2xl border px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          className="border-input bg-card ring-offset-background focus-visible:ring-ring w-full rounded-2xl border px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         />
 
         {errors.travelers && (

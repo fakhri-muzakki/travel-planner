@@ -55,7 +55,7 @@ const DietaryOptions = ({ setValue }: DietaryOptionsProps) => {
               className={`rounded-full border px-4 py-2 text-sm transition ${
                 active
                   ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
-                  : "border-input bg-background hover:border-emerald-500/60"
+                  : "border-input bg-card hover:border-emerald-500/60"
               }`}
             >
               {item}

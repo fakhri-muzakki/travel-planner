@@ -61,8 +61,9 @@ const RegisterForm = () => {
         <div className="mt-8 space-y-4">
           <input
             {...register("full_name")}
+            autoComplete="off"
             placeholder="Full name"
-            className="w-full rounded-2xl border border-input bg-background px-4 py-3 outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+            className="w-full rounded-2xl border border-input bg-card px-4 py-3 outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
           />
 
           {errors.full_name?.message && (
@@ -73,8 +74,9 @@ const RegisterForm = () => {
 
           <input
             {...register("email")}
+            autoComplete="off"
             placeholder="Email address"
-            className="w-full rounded-2xl border border-input bg-background px-4 py-3 outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+            className="w-full rounded-2xl border border-input bg-card px-4 py-3 outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
           />
 
           {errors.email?.message && (
@@ -83,9 +85,10 @@ const RegisterForm = () => {
 
           <input
             type="password"
+            autoComplete="off"
             {...register("password")}
             placeholder="Password"
-            className="w-full rounded-2xl border border-input bg-background px-4 py-3 outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+            className="w-full rounded-2xl border border-input bg-card px-4 py-3 outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
           />
 
           {errors.password?.message && (
@@ -96,9 +99,10 @@ const RegisterForm = () => {
 
           <input
             type="password"
+            autoComplete="off"
             {...register("confirm_password")}
             placeholder="Confirm password"
-            className="w-full rounded-2xl border border-input bg-background px-4 py-3 outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+            className="w-full rounded-2xl border border-input bg-card px-4 py-3 outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
           />
 
           {errors.confirm_password?.message && (

@@ -91,8 +91,9 @@ const CreateTripForm = ({ prefs }: { prefs: string[] }) => {
 
         <input
           placeholder="Tokyo, Bali, Paris..."
+          autoComplete="off"
           {...register("destination")}
-          className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-2xl border px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          className="border-input bg-card ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-2xl border px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         />
 
         {errors.destination && (

@@ -61,8 +61,9 @@ const LoginForm = () => {
         <div className="mt-8 space-y-4">
           <input
             {...register("email")}
+            autoComplete="off"
             placeholder="Email address"
-            className="w-full rounded-2xl border border-input bg-background px-4 py-3 outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+            className="w-full rounded-2xl border border-input bg-card px-4 py-3 outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
           />
 
           {errors.email?.message && (
@@ -71,9 +72,10 @@ const LoginForm = () => {
 
           <input
             type="password"
+            autoComplete="off"
             {...register("password")}
             placeholder="Password"
-            className="w-full rounded-2xl border border-input bg-background px-4 py-3 outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+            className="w-full rounded-2xl border border-input bg-card px-4 py-3 outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
           />
 
           {errors.password?.message && (
@@ -81,20 +83,6 @@ const LoginForm = () => {
               {errors.password.message}
             </p>
           )}
-
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 text-muted-foreground">
-              <input type="checkbox" className="accent-primary" />
-              Remember me
-            </label>
-
-            <button
-              type="button"
-              className="text-primary hover:opacity-80 transition"
-            >
-              Forgot password?
-            </button>
-          </div>
 
           <button
             type="submit"
